@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// LocMsk - таймзона МСК
 	LocMsk *time.Location
 )
 
