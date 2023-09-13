@@ -24,3 +24,6 @@ bin-deps:
 
 migrate-up-ci:bin-deps
 	migrate -path migrations -database "$(LOCAL_DB_DSN)" up
+
+lint:
+	golangci-lint run --config=.golangci.yml
