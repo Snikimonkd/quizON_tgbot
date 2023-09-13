@@ -10,10 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	relativeConfigPath = "values/local.yaml"
-)
-
 // GlobalConfig - глобальный конфиг
 var GlobalConfig config
 
@@ -36,6 +32,7 @@ func init() {
 	if !ok {
 		logger.Fatalf("can't get config file path")
 	}
+	relativeConfigPath := filepath.Clean("values/local.yaml")
 	absoluteConfigPath := filepath.Join(filepath.Dir(currentPath), "../..", relativeConfigPath)
 
 	file, err := os.Open(absoluteConfigPath)
