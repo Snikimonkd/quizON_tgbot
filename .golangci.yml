@@ -15,9 +15,7 @@ run:
     - \.pb\.goclay\.go$
 
 output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+  format: line-number
 
 linters-settings:
   govet:
