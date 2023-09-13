@@ -23,7 +23,7 @@ func NewRepository(db *pgx.Conn) repository {
 	}
 }
 
-func (r repository) Games(ctx context.Context) ([]model.Games, error) {
+func (r repository) Games(ctx context.Context, from time.Time) ([]model.Games, error) {
 	stmt := table.Games.SELECT(
 		table.Games.ID,
 		table.Games.CreatedAt,
@@ -32,15 +32,17 @@ func (r repository) Games(ctx context.Context) ([]model.Games, error) {
 		table.Games.Date,
 		table.Games.Description,
 	).WHERE(
-		table.Games.Date.GT(postgres.TimestampzT(time.Now())),
+		table.Games.Date.GT_EQ(postgres.TimestampzT(from)),
+	).ORDER_BY(
+		table.Games.Date.ASC(),
 	)
 
 	query, args := stmt.Sql()
 	rows, err := r.db.Query(ctx, query, args...)
-	defer rows.Close()
 	if err != nil {
 		return nil, fmt.Errorf("can't query from games: %w", err)
 	}
+	defer rows.Close()
 
 	var res []model.Games
 	for rows.Next() {
@@ -149,10 +151,10 @@ func (r repository) List(ctx context.Context, gameID int) ([]model.Registrations
 
 	query, args := stmt.Sql()
 	rows, err := r.db.Query(ctx, query, args...)
-	defer rows.Close()
 	if err != nil {
 		return nil, fmt.Errorf("can't select from registrations: %w", err)
 	}
+	defer rows.Close()
 
 	var res []model.Registrations
 	for rows.Next() {

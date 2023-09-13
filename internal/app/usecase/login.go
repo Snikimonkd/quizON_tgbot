@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"quizon_bot/internal/generated/postgres/public/model"
+	"quizon_bot/internal/pkg/timesupport"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func (u usecase) Login(ctx context.Context, userID int64, secretKey string) (boo
 		return false, nil
 	}
 
-	until := time.Now().Add(time.Hour * 24)
+	until := time.Now().Add(time.Hour * 24).In(timesupport.LocMsk)
 	req := model.Admins{
 		ID:        userID,
 		DateUntil: until,

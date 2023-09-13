@@ -13,7 +13,6 @@ func init() {
 	if err != nil {
 		log.Fatalf("cam't start logger: %v", err)
 	}
-	defer baseLogger.Sync()
 
 	logger = baseLogger.Sugar()
 }

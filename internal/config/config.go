@@ -2,6 +2,8 @@ package config
 
 import (
 	"os"
+	"path/filepath"
+	"runtime"
 
 	"quizon_bot/internal/logger"
 
@@ -9,7 +11,7 @@ import (
 )
 
 const (
-	configPath = "values/local.yaml"
+	relativeConfigPath = "values/local.yaml"
 )
 
 // GlobalConfig - глобальный конфиг
@@ -30,7 +32,13 @@ type config struct {
 }
 
 func init() {
-	file, err := os.Open(configPath)
+	_, currentPath, _, ok := runtime.Caller(0)
+	if !ok {
+		logger.Fatalf("can't get config file path")
+	}
+	absoluteConfigPath := filepath.Join(filepath.Dir(currentPath), "../..", relativeConfigPath)
+
+	file, err := os.Open(absoluteConfigPath)
 	if err != nil {
 		logger.Fatalf("can't open config file: %v", err)
 	}
