@@ -32,10 +32,10 @@ func init() {
 	if !ok {
 		logger.Fatalf("can't get config file path")
 	}
-	relativeConfigPath := filepath.Clean("values/local.yaml")
+	relativeConfigPath := "values/local.yaml"
 	absoluteConfigPath := filepath.Join(filepath.Dir(currentPath), "../..", relativeConfigPath)
 
-	file, err := os.Open(absoluteConfigPath)
+	file, err := os.Open(filepath.Clean(absoluteConfigPath))
 	if err != nil {
 		logger.Fatalf("can't open config file: %v", err)
 	}
