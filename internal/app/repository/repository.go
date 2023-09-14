@@ -65,18 +65,19 @@ func (r repository) Games(ctx context.Context, from time.Time) ([]model.Games, e
 	return res, nil
 }
 
-func (r repository) Create(ctx context.Context, req model.Games) error {
-	stmt := table.Games.INSERT(
-		table.Games.AllColumns.Except(table.Games.ID),
-	).MODEL(req)
+func (r repository) Create(ctx context.Context, req model.Games) (int64, error) {
+	stmt := table.Games.INSERT(table.Games.AllColumns.Except(table.Games.ID)).
+		MODEL(req).
+		RETURNING(table.Games.ID)
 
 	query, args := stmt.Sql()
-	_, err := r.db.Exec(ctx, query, args...)
+	var res int64
+	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
 	if err != nil {
-		return fmt.Errorf("can't insert into games: %w", err)
+		return 0, fmt.Errorf("can't insert into games: %w", err)
 	}
 
-	return nil
+	return res, nil
 }
 
 func (r repository) UpsertAdmin(ctx context.Context, req model.Admins) error {

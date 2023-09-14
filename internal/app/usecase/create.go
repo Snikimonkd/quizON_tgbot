@@ -7,12 +7,13 @@ import (
 )
 
 type CreateRepository interface {
-	Create(ctx context.Context, req model.Games) error
+	Create(ctx context.Context, req model.Games) (int64, error)
 }
 
 func (u usecase) Create(ctx context.Context, req model.Games) error {
 	now := time.Now()
 	req.CreatedAt = now
 	req.UdpatedAt = now
-	return u.createRepository.Create(ctx, req)
+	_, err := u.createRepository.Create(ctx, req)
+	return err
 }

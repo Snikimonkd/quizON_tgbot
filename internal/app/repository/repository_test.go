@@ -18,10 +18,7 @@ func Test_repository_Games(t *testing.T) {
 	ctx := context.Background()
 
 	t.Cleanup(func() {
-		_, err := db.Exec(ctx, "TRUNCATE games CASCADE;")
-		if err != nil {
-			t.Errorf("can't clean db: %v", err)
-		}
+		testsupport.TruncateGames(t, db)
 	})
 
 	tests := []struct {
@@ -113,52 +110,42 @@ func Test_repository_Games(t *testing.T) {
 	}
 }
 
-// func Test_repository_Create(t *testing.T) {
-// 	db := testsupport.ConnectToTestPostgres()
-// 	ctx := context.Background()
-//
-// 	t.Cleanup(func() {
-// 		_, err := db.Exec(ctx, "TRUNCATE games CASCADE;")
-// 		if err != nil {
-// 			t.Errorf("can't clean db: %v", err)
-// 		}
-// 	})
-//
-// 	tests := []struct {
-// 		name    string
-// 		req     model.Games
-// 		check   func(expect model.Games)
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "1. Successful test.",
-// 			req: model.Games{
-// 				ID:          1,
-// 				CreatedAt:   time.Now(),
-// 				UdpatedAt:   time.Now(),
-// 				Location:    "lol",
-// 				Date:        time.Now(),
-// 				Description: lo.ToPtr("kek"),
-// 			},
-// 			check: func(expect model.Games) {
-// 				stmt := table.Games.Select(
-// 					table.Games.AllColumns,
-// 				).WHERE(
-// 					table.Games.ID.EQ(expect.ID),
-// 				)
-//
-//
-// 			},
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			r := repository{db: db}
-// 			err := r.Create(ctx, tt.req)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("repository.Create() error = %v, wantErr %v", err, tt.wantErr)
-// 			}
-// 			tt.check(tt.req)
-// 		})
-// 	}
-// }
+func Test_repository_Create(t *testing.T) {
+	db := testsupport.ConnectToTestPostgres()
+	ctx := context.Background()
+
+	t.Cleanup(func() {
+		testsupport.TruncateGames(t, db)
+	})
+
+	tests := []struct {
+		name    string
+		want    model.Games
+		wantErr bool
+	}{
+		{
+			name: "1. Successful test.",
+			want: model.Games{
+				CreatedAt:   timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				UdpatedAt:   timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				Location:    "lol",
+				Date:        timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				Description: lo.ToPtr("kek"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := repository{db: db}
+			var err error
+			tt.want.ID, err = r.Create(ctx, tt.want)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("repository.Create() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			got := testsupport.SelectGames(t, db, tt.want.ID)
+			if !cmp.Equal(tt.want, got) {
+				t.Errorf("want != got, diff:\n%v", cmp.Diff(tt.want, got))
+			}
+		})
+	}
+}
