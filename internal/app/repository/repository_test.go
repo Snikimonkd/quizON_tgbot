@@ -149,3 +149,35 @@ func Test_repository_Create(t *testing.T) {
 		})
 	}
 }
+
+func Test_repository_UpsertAdmin(t *testing.T) {
+	db := testsupport.ConnectToTestPostgres()
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		want    model.Admins
+		wantErr bool
+	}{
+		{
+			name: "1. Successful test.",
+			want: model.Admins{
+				ID:        1,
+				DateUntil: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := repository{db: db}
+			err := r.UpsertAdmin(ctx, tt.want)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("repository.UpsertAdmin() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			got := testsupport.SelectAdmins(t, db, tt.want.ID)
+			if !cmp.Equal(tt.want, got) {
+				t.Errorf("got != want, diff:\n%v", cmp.Diff(tt.want, got))
+			}
+		})
+	}
+}
