@@ -29,3 +29,25 @@ func SelectAdmins(t *testing.T, db *pgx.Conn, id int64) model.Admins {
 
 	return res
 }
+
+func InsertIntoAdmins(t *testing.T, db *pgx.Conn, in model.Admins) {
+	stmt := table.Admins.INSERT(
+		table.Admins.AllColumns,
+	).MODEL(
+		in,
+	)
+
+	query, args := stmt.Sql()
+	_, err := db.Exec(context.Background(), query, args...)
+	if err != nil {
+		t.Errorf("can't insert into admins: %v", err.Error())
+	}
+}
+
+func TruncateAdmins(t *testing.T, db *pgx.Conn) {
+	query := "TRUNCATE admins;"
+	_, err := db.Exec(context.Background(), query, )
+	if err != nil {
+		t.Errorf("can't insert into admins: %v", err.Error())
+	} 
+}

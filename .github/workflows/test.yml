@@ -31,4 +31,4 @@ jobs:
       run: make migrate-up-ci
 
     - name: tests
-      run: go test -v ./...
+      run: make test-cov

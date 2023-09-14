@@ -6,6 +6,12 @@ run:
 t:
 	go test -v -count=1 -p=1 -cover -coverprofile=cover.out.tmp -covermode=atomic -coverpkg ./... ./...
 
+test-cov:
+	make t
+	cat cover.out.tmp | grep -v "mock.go" | grep -v "pb.go" | grep -v "/testsupport/" | grep -v "/generated/" | grep -v "swagger.go" | grep -v ".pb.*.go" > cover.out || cp cover.out.tmp cover.out
+	go tool cover -func cover.out
+	go tool cover -html=cover.out
+
 migrate-new:
 	migrate create -ext sql -dir migrations/ -seq init_schema
 

@@ -181,3 +181,45 @@ func Test_repository_UpsertAdmin(t *testing.T) {
 		})
 	}
 }
+
+func Test_repository_CheckAuth(t *testing.T) {
+	db := testsupport.ConnectToTestPostgres()
+	ctx := context.Background()
+
+	t.Cleanup(func() {
+		testsupport.TruncateAdmins(t, db)
+	})
+
+	tests := []struct {
+		name    string
+		prep    func() model.Admins
+		wantErr bool
+	}{
+		{
+			name: "1. Successful test.",
+			prep: func() model.Admins {
+				in := model.Admins{
+					ID:        testsupport.RandInt64(),
+					DateUntil: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				}
+
+				testsupport.InsertIntoAdmins(t, db, in)
+				return in
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := repository{db: db}
+			want := tt.prep()
+			got, err := r.CheckAuth(ctx, want.ID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("repository.CheckAuth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !cmp.Equal(got, want) {
+				t.Errorf("repository.CheckAuth() = %v, want %v", got, want)
+			}
+		})
+	}
+}
