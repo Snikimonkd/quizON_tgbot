@@ -36,10 +36,8 @@ linters:
     - gosec
     - govet
     - ineffassign
-    # - megacheck (staticcheck + gosimple + unused in one linter) - enable before push
-    - revive
+    - megacheck (staticcheck + gosimple + unused in one linter) - enable before push
     - typecheck
-    - unused # will be used insted of varcheck + deadcode + structcheck. More info https://github.com/golangci/golangci-lint/issues/1841
 
 issues:
   exclude-use-default: false
