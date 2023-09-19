@@ -16,11 +16,13 @@ var Registrations = newRegistrationsTable("public", "registrations", "")
 type registrationsTable struct {
 	postgres.Table
 
-	//Columns
+	// Columns
 	GameID    postgres.ColumnInteger
-	TeamID    postgres.ColumnString
+	TeamID    postgres.ColumnInteger
 	TeamName  postgres.ColumnString
+	UserID    postgres.ColumnInteger
 	CreatedAt postgres.ColumnTimestampz
+	UdpatedAt postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -42,6 +44,16 @@ func (a RegistrationsTable) FromSchema(schemaName string) *RegistrationsTable {
 	return newRegistrationsTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new RegistrationsTable with assigned table prefix
+func (a RegistrationsTable) WithPrefix(prefix string) *RegistrationsTable {
+	return newRegistrationsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new RegistrationsTable with assigned table suffix
+func (a RegistrationsTable) WithSuffix(suffix string) *RegistrationsTable {
+	return newRegistrationsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newRegistrationsTable(schemaName, tableName, alias string) *RegistrationsTable {
 	return &RegistrationsTable{
 		registrationsTable: newRegistrationsTableImpl(schemaName, tableName, alias),
@@ -52,11 +64,13 @@ func newRegistrationsTable(schemaName, tableName, alias string) *RegistrationsTa
 func newRegistrationsTableImpl(schemaName, tableName, alias string) registrationsTable {
 	var (
 		GameIDColumn    = postgres.IntegerColumn("game_id")
-		TeamIDColumn    = postgres.StringColumn("team_id")
+		TeamIDColumn    = postgres.IntegerColumn("team_id")
 		TeamNameColumn  = postgres.StringColumn("team_name")
+		UserIDColumn    = postgres.IntegerColumn("user_id")
 		CreatedAtColumn = postgres.TimestampzColumn("created_at")
-		allColumns      = postgres.ColumnList{GameIDColumn, TeamIDColumn, TeamNameColumn, CreatedAtColumn}
-		mutableColumns  = postgres.ColumnList{GameIDColumn, TeamIDColumn, TeamNameColumn, CreatedAtColumn}
+		UdpatedAtColumn = postgres.TimestampzColumn("udpated_at")
+		allColumns      = postgres.ColumnList{GameIDColumn, TeamIDColumn, TeamNameColumn, UserIDColumn, CreatedAtColumn, UdpatedAtColumn}
+		mutableColumns  = postgres.ColumnList{GameIDColumn, TeamIDColumn, TeamNameColumn, UserIDColumn, CreatedAtColumn, UdpatedAtColumn}
 	)
 
 	return registrationsTable{
@@ -66,7 +80,9 @@ func newRegistrationsTableImpl(schemaName, tableName, alias string) registration
 		GameID:    GameIDColumn,
 		TeamID:    TeamIDColumn,
 		TeamName:  TeamNameColumn,
+		UserID:    UserIDColumn,
 		CreatedAt: CreatedAtColumn,
+		UdpatedAt: UdpatedAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

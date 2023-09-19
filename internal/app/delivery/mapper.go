@@ -108,26 +108,3 @@ func mapArgsIntoGame(args []string) (model.Games, error) {
 
 	return ret, nil
 }
-
-// <№ игры> <id команды> <навзание команды>
-func mapArgsIntoRegistration(args []string) (model.Registrations, error) {
-	if len(args) < 3 {
-		return model.Registrations{}, fmt.Errorf("len(args) is less then 3")
-	}
-
-	gameID, err := strconv.Atoi(args[0])
-	if err != nil {
-		return model.Registrations{}, fmt.Errorf("can't atoi gameID: %w", err)
-	}
-
-	return model.Registrations{
-		GameID: int64(gameID),
-		TeamID: args[1],
-		TeamName: lo.Reduce(args[2:], func(r string, t string, i int) string {
-			if i == len(args[2:])-1 {
-				return r + t
-			}
-			return r + t + " "
-		}, ""),
-	}, nil
-}

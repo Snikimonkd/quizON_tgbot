@@ -2,5 +2,5 @@ database:
   dsn: "postgres://postgres:postgres@localhost:55006/postgres?sslmode=disable"
 
 keys:
-  token: "5133705347:AAEkA1mDeqZvmAslzGa4XJ0waVsnxg8nGQI"
+  token: "6668880469:AAFNlZheE9kX-hNtemRxaM0MV1MMJ1Ypu0g"
 

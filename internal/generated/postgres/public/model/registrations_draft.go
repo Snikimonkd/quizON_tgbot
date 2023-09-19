@@ -11,11 +11,11 @@ import (
 	"time"
 )
 
-type Registrations struct {
-	GameID    int64
-	TeamID    int64
-	TeamName  string
+type RegistrationsDraft struct {
 	UserID    int64
+	GameID    *int64
+	TeamID    *int64
+	TeamName  *string
 	CreatedAt time.Time
-	UdpatedAt time.Time
+	UpdatedAt time.Time
 }

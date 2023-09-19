@@ -16,7 +16,7 @@ var Admins = newAdminsTable("public", "admins", "")
 type adminsTable struct {
 	postgres.Table
 
-	//Columns
+	// Columns
 	ID        postgres.ColumnInteger
 	DateUntil postgres.ColumnTimestampz
 
@@ -38,6 +38,16 @@ func (a AdminsTable) AS(alias string) *AdminsTable {
 // Schema creates new AdminsTable with assigned schema name
 func (a AdminsTable) FromSchema(schemaName string) *AdminsTable {
 	return newAdminsTable(schemaName, a.TableName(), a.Alias())
+}
+
+// WithPrefix creates new AdminsTable with assigned table prefix
+func (a AdminsTable) WithPrefix(prefix string) *AdminsTable {
+	return newAdminsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new AdminsTable with assigned table suffix
+func (a AdminsTable) WithSuffix(suffix string) *AdminsTable {
+	return newAdminsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
 }
 
 func newAdminsTable(schemaName, tableName, alias string) *AdminsTable {

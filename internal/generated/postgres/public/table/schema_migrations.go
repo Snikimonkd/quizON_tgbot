@@ -16,7 +16,7 @@ var SchemaMigrations = newSchemaMigrationsTable("public", "schema_migrations", "
 type schemaMigrationsTable struct {
 	postgres.Table
 
-	//Columns
+	// Columns
 	Version postgres.ColumnInteger
 	Dirty   postgres.ColumnBool
 
@@ -38,6 +38,16 @@ func (a SchemaMigrationsTable) AS(alias string) *SchemaMigrationsTable {
 // Schema creates new SchemaMigrationsTable with assigned schema name
 func (a SchemaMigrationsTable) FromSchema(schemaName string) *SchemaMigrationsTable {
 	return newSchemaMigrationsTable(schemaName, a.TableName(), a.Alias())
+}
+
+// WithPrefix creates new SchemaMigrationsTable with assigned table prefix
+func (a SchemaMigrationsTable) WithPrefix(prefix string) *SchemaMigrationsTable {
+	return newSchemaMigrationsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new SchemaMigrationsTable with assigned table suffix
+func (a SchemaMigrationsTable) WithSuffix(suffix string) *SchemaMigrationsTable {
+	return newSchemaMigrationsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
 }
 
 func newSchemaMigrationsTable(schemaName, tableName, alias string) *SchemaMigrationsTable {

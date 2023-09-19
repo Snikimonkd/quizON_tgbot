@@ -16,7 +16,7 @@ var Games = newGamesTable("public", "games", "")
 type gamesTable struct {
 	postgres.Table
 
-	//Columns
+	// Columns
 	ID          postgres.ColumnInteger
 	CreatedAt   postgres.ColumnTimestampz
 	UdpatedAt   postgres.ColumnTimestampz
@@ -42,6 +42,16 @@ func (a GamesTable) AS(alias string) *GamesTable {
 // Schema creates new GamesTable with assigned schema name
 func (a GamesTable) FromSchema(schemaName string) *GamesTable {
 	return newGamesTable(schemaName, a.TableName(), a.Alias())
+}
+
+// WithPrefix creates new GamesTable with assigned table prefix
+func (a GamesTable) WithPrefix(prefix string) *GamesTable {
+	return newGamesTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new GamesTable with assigned table suffix
+func (a GamesTable) WithSuffix(suffix string) *GamesTable {
+	return newGamesTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
 }
 
 func newGamesTable(schemaName, tableName, alias string) *GamesTable {

@@ -13,6 +13,7 @@ type Usecase interface {
 	LoginUsecase
 	RegisterUsecase
 	ListUsecase
+	RegisterStatesUsecase
 }
 
 type TgBotHandle func(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error)
@@ -22,53 +23,35 @@ type delivery struct {
 
 	routes map[string]TgBotHandle
 
-	gamesUsecase    Usecase
-	createUsecase   Usecase
-	loginUsecase    Usecase
-	registerUsecase Usecase
-	listUsecase     Usecase
+	gamesUsecase          Usecase
+	createUsecase         Usecase
+	loginUsecase          Usecase
+	registerUsecase       Usecase
+	listUsecase           Usecase
+	registerStatesUsecase Usecase
 }
 
 func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
-	_, err := bot.Request(tgbotapi.NewDeleteMyCommands())
-	if err != nil {
-		logger.Fatalf("can't init bot: %w")
-	}
-	_, err = bot.Request(tgbotapi.NewSetMyCommands(commands...))
-	if err != nil {
-		logger.Fatalf("can't init bot: %w", err)
-	}
-
 	return delivery{
-		bot:             bot,
-		gamesUsecase:    usecases,
-		createUsecase:   usecases,
-		loginUsecase:    usecases,
-		registerUsecase: usecases,
-		listUsecase:     usecases,
+		bot:                   bot,
+		gamesUsecase:          usecases,
+		createUsecase:         usecases,
+		loginUsecase:          usecases,
+		registerUsecase:       usecases,
+		listUsecase:           usecases,
+		registerStatesUsecase: usecases,
 	}
 }
 
 var commands []tgbotapi.BotCommand = []tgbotapi.BotCommand{
+	// user
 	{
 		Command:     "games",
-		Description: "список ближайших игр",
+		Description: "список ближайших игр.",
 	},
 	{
 		Command:     "register",
-		Description: "регистрация на игру. Пример: /register <№ игры> <id команды> <навзание команды>",
-	},
-	{
-		Command:     "login",
-		Description: "залогиниться как адми. Пример: /login <ключик>",
-	},
-	{
-		Command:     "create",
-		Description: "создать игру. Пример: /create <число> <месяц> <год> <часы:минуты> <место проведения> <опциональный комментарий>",
-	},
-	{
-		Command:     "list",
-		Description: "список команд, зарегестрировавшихся на игру. Пример: /list <№ игры>",
+		Description: "регистрация на игру.",
 	},
 }
 
@@ -81,6 +64,7 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 		"login":    d.Login,
 		"register": d.Register,
 		"list":     d.List,
+		"start":    d.Start,
 	}
 
 	u := tgbotapi.NewUpdate(0)
@@ -90,22 +74,45 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 
 	// Loop through each update.
 	for update := range updates {
-		if update.Message == nil {
+		if update.Message == nil ||
+			update.Message.From.IsBot ||
+			update.Message.Chat.IsGroup() ||
+			update.Message.Chat.IsChannel() ||
+			update.Message.Chat.IsSuperGroup() {
 			continue
 		}
 
-		v, ok := d.routes[update.Message.Command()]
-		if !ok {
-			logger.Errorf("unknown route: %v", update.Message.Command())
-		}
+		// command
+		if update.Message.IsCommand() {
+			handler, ok := d.routes[update.Message.Command()]
+			if !ok {
+				logger.Errorf("unknown route: %v", update.Message.Command())
+				continue
+			}
 
-		res, err := v(ctx, update)
-		if err != nil {
-			logger.Errorf("error")
-		}
+			res, err := handler(ctx, update)
+			if err != nil {
+				logger.Errorf("command error: %w", err)
+			}
 
-		if res.Text != "" {
-			d.Send(res)
+			if res.Text != "" {
+				d.Send(res)
+			}
+			// dialog
+		} else {
+			// user_id == chat_id -> user
+			if update.Message.Chat.ID == update.Message.From.ID {
+				res, err := d.RegisterStates(ctx, update)
+				if err != nil {
+					logger.Errorf("register state error: %w", err)
+				}
+
+				if res.Text != "" {
+					d.Send(res)
+				}
+			} else {
+				// chat -> do nothing
+			}
 		}
 	}
 }
