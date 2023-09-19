@@ -1,0 +1,6 @@
+database:
+  dsn: "postgres://postgres:postgres@localhost:55006/postgres?sslmode=disable"
+
+keys:
+  token: "6668880469:AAFNlZheE9kX-hNtemRxaM0MV1MMJ1Ypu0g"
+
