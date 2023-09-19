@@ -110,9 +110,8 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 				if res.Text != "" {
 					d.Send(res)
 				}
-			} else {
-				// chat -> do nothing
 			}
+			// else chat -> do nothing
 		}
 	}
 }
