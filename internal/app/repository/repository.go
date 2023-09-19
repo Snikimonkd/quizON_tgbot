@@ -282,13 +282,12 @@ func (r repository) CreateRegistration(ctx context.Context, in model.Registratio
 
 	query, args := createRegStmt.Sql()
 	_, err = tx.Exec(ctx, query, args...)
-	var pgError pgconn.PgError
+	var pgError *pgconn.PgError
 	if errors.As(err, &pgError) {
-		if pgError.Code == "23503" && pgError.ConstraintName == "game_id_team_id_uniq" {
+		if pgError.Code == "23505" && pgError.ConstraintName == "game_id_team_id_uniq" {
 			return usecase.ErrTeamIdIsUsed
 		}
 	}
-
 	if err != nil {
 		return fmt.Errorf("can't insert into registrations: %w", err)
 	}

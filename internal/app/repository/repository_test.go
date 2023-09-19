@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"quizon_bot/internal/app/usecase"
 	"quizon_bot/internal/generated/postgres/public/model"
 	"quizon_bot/internal/pkg/testsupport"
 	"quizon_bot/internal/pkg/timesupport"
@@ -219,6 +221,83 @@ func Test_repository_CheckAuth(t *testing.T) {
 			}
 			if !cmp.Equal(got, want) {
 				t.Errorf("repository.CheckAuth() = %v, want %v", got, want)
+			}
+		})
+	}
+}
+
+func Test_repository_CreateRegistration(t *testing.T) {
+	db := testsupport.ConnectToTestPostgres()
+	ctx := context.Background()
+
+	t.Cleanup(func() {
+		testsupport.TruncateRegistrations(t, db)
+	})
+
+	tests := []struct {
+		name    string
+		want    model.Registrations
+		prep    func()
+		check   func(want model.Registrations)
+		wantErr error
+	}{
+		{
+			name: "1. Successful test.",
+			prep: func() {},
+			want: model.Registrations{
+				GameID:    1,
+				TeamID:    3,
+				TeamName:  "asdf",
+				UserID:    5,
+				CreatedAt: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				UdpatedAt: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+			},
+			check: func(want model.Registrations) {
+				got := testsupport.SelectRegistrations(t, db, want.GameID, want.TeamID)
+				if !cmp.Equal(got, want) {
+					t.Errorf("got != want, diff:\n%v", cmp.Equal(got, want))
+				}
+			},
+		},
+		{
+			name: "2. Test with constraint error.",
+			prep: func() {
+				testsupport.InsertRegistration(t, db, model.Registrations{
+					GameID:    2,
+					TeamID:    4,
+					TeamName:  "asdf",
+					UserID:    5,
+					CreatedAt: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+					UdpatedAt: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				})
+			},
+			want: model.Registrations{
+				GameID:    2,
+				TeamID:    4,
+				TeamName:  "asdf",
+				UserID:    5,
+				CreatedAt: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+				UdpatedAt: timesupport.Pretty(time.Date(2023, 1, 2, 3, 4, 5, 6, timesupport.LocMsk)),
+			},
+			check: func(want model.Registrations) {
+				got := testsupport.SelectRegistrations(t, db, want.GameID, want.TeamID)
+				if !cmp.Equal(got, want) {
+					t.Errorf("got != want, diff:\n%v", cmp.Equal(got, want))
+				}
+			},
+			wantErr: usecase.ErrTeamIdIsUsed,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := repository{db: db}
+			tt.prep()
+			err := r.CreateRegistration(ctx, tt.want)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("repository.CreateRegistration() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr == nil {
+				tt.check(tt.want)
 			}
 		})
 	}
