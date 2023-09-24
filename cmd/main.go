@@ -48,7 +48,7 @@ func main() {
 	})
 
 	go func() {
-		err := http.ListenAndServeTLS(":8000", "server.crt", "server.key", r)
+		err := http.ListenAndServe(":8000", r)
 		if err != nil {
 			logger.Fatalf("can't start server: %v", err)
 		}
