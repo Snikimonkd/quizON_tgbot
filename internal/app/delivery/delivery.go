@@ -58,11 +58,6 @@ var commands []tgbotapi.BotCommand = []tgbotapi.BotCommand{
 const errorMessage string = "Ой, что-то пошло не так"
 
 func (d *delivery) ListenAndServe(ctx context.Context) {
-	b := tgbotapi.NewInlineKeyboardButtonWebApp("Зарегестрироваться", tgbotapi.WebAppInfo{
-		URL: "https://localhost:8000",
-	})
-	r := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{b})
-
 	d.routes = map[string]TgBotHandle{
 		"games":    d.Games,
 		"create":   d.Create,
@@ -79,13 +74,6 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 
 	// Loop through each update.
 	for update := range updates {
-		if update.Message.Text == "kek" {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-			msg.ReplyMarkup = &r
-			msg.Text = "kek"
-			d.bot.Send(msg)
-			continue
-		}
 		if update.Message == nil ||
 			update.Message.From.IsBot ||
 			update.Message.Chat.IsGroup() ||
