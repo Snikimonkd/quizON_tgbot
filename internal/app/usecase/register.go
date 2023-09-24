@@ -9,10 +9,11 @@ type RegisterRepository interface {
 	Register(ctx context.Context, req model.RegistrationsDraft) error
 }
 
-func (u usecase) Register(ctx context.Context, userID int64) error {
+func (u usecase) Register(ctx context.Context, userID int64, nickname string) error {
 	now := u.clock.Now()
 	req := model.RegistrationsDraft{
 		UserID:    userID,
+		TgContact: nickname,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}

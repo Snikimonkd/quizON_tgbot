@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type repository struct {
@@ -157,38 +156,38 @@ func (r repository) Register(ctx context.Context, req model.RegistrationsDraft) 
 	return nil
 }
 
-func (r repository) List(ctx context.Context, gameID int) ([]model.Registrations, error) {
-	stmt := table.Registrations.SELECT(
-		table.Registrations.TeamName,
-		table.Registrations.TeamID,
-	).WHERE(
-		table.Registrations.GameID.EQ(postgres.Int(int64(gameID))),
-	).ORDER_BY(
-		table.Registrations.CreatedAt.ASC(),
-	)
-
-	query, args := stmt.Sql()
-	rows, err := r.db.Query(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("can't select from registrations: %w", err)
-	}
-	defer rows.Close()
-
-	var res []model.Registrations
-	for rows.Next() {
-		var row model.Registrations
-		err = rows.Scan(
-			&row.TeamName,
-			&row.TeamID,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("can't scan result of select from registrations: %w", err)
-		}
-		res = append(res, row)
-	}
-
-	return res, nil
-}
+// func (r repository) List(ctx context.Context, gameID int) ([]model.Registrations, error) {
+// 	stmt := table.Registrations.SELECT(
+// 		table.Registrations.TeamName,
+// 		table.Registrations.TeamID,
+// 	).WHERE(
+// 		table.Registrations.GameID.EQ(postgres.Int(int64(gameID))),
+// 	).ORDER_BY(
+// 		table.Registrations.CreatedAt.ASC(),
+// 	)
+//
+// 	query, args := stmt.Sql()
+// 	rows, err := r.db.Query(ctx, query, args...)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("can't select from registrations: %w", err)
+// 	}
+// 	defer rows.Close()
+//
+// 	var res []model.Registrations
+// 	for rows.Next() {
+// 		var row model.Registrations
+// 		err = rows.Scan(
+// 			&row.TeamName,
+// 			&row.TeamID,
+// 		)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("can't scan result of select from registrations: %w", err)
+// 		}
+// 		res = append(res, row)
+// 	}
+//
+// 	return res, nil
+// }
 
 func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (model.RegistrationsDraft, error) {
 	stmt := table.RegistrationsDraft.SELECT(
@@ -201,12 +200,17 @@ func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (mod
 	var res model.RegistrationsDraft
 	err := r.db.QueryRow(ctx, query, args...).Scan(
 		&res.UserID,
-		&res.GameID,
+		&res.TgContact,
 		&res.TeamID,
 		&res.TeamName,
+		&res.CaptainName,
+		&res.GroupName,
+		&res.Phone,
+		&res.Amount,
 		&res.CreatedAt,
 		&res.UpdatedAt,
 	)
+
 	if errors.Is(err, pgx.ErrNoRows) {
 		return model.RegistrationsDraft{}, usecase.ErrNotFound
 	}
@@ -219,14 +223,20 @@ func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (mod
 
 func (r repository) UpdateRegistrationDraft(ctx context.Context, in model.RegistrationsDraft) error {
 	stmt := table.RegistrationsDraft.UPDATE(
-		table.RegistrationsDraft.GameID,
 		table.RegistrationsDraft.TeamID,
 		table.RegistrationsDraft.TeamName,
+		table.RegistrationsDraft.CaptainName,
+		table.RegistrationsDraft.GroupName,
+		table.RegistrationsDraft.Phone,
+		table.RegistrationsDraft.Amount,
 		table.RegistrationsDraft.UpdatedAt,
 	).SET(
-		in.GameID,
 		in.TeamID,
 		in.TeamName,
+		in.CaptainName,
+		in.GroupName,
+		in.Phone,
+		in.Amount,
 		in.UpdatedAt,
 	).WHERE(
 		table.RegistrationsDraft.UserID.EQ(postgres.Int64(in.UserID)),
@@ -282,12 +292,6 @@ func (r repository) CreateRegistration(ctx context.Context, in model.Registratio
 
 	query, args := createRegStmt.Sql()
 	_, err = tx.Exec(ctx, query, args...)
-	var pgError *pgconn.PgError
-	if errors.As(err, &pgError) {
-		if pgError.Code == "23505" && pgError.ConstraintName == "game_id_team_id_uniq" {
-			return usecase.ErrTeamIdIsUsed
-		}
-	}
 	if err != nil {
 		return fmt.Errorf("can't insert into registrations: %w", err)
 	}

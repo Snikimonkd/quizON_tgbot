@@ -12,10 +12,14 @@ import (
 )
 
 type RegistrationsDraft struct {
-	UserID    int64
-	GameID    *int64
-	TeamID    *int64
-	TeamName  *string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	UserID      int64
+	TgContact   string
+	TeamID      int64
+	TeamName    *string
+	CaptainName *string
+	GroupName   *string
+	Phone       *string
+	Amount      *string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

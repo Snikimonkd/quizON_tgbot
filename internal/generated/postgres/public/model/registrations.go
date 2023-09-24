@@ -12,10 +12,14 @@ import (
 )
 
 type Registrations struct {
-	GameID    int64
-	TeamID    int64
-	TeamName  string
-	UserID    int64
-	CreatedAt time.Time
-	UdpatedAt time.Time
+	UserID      int64
+	TgContact   string
+	TeamID      int64
+	TeamName    string
+	CaptainName string
+	Pnohe       string
+	GroupName   string
+	Amount      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

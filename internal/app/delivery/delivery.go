@@ -12,7 +12,7 @@ type Usecase interface {
 	CreateUsecase
 	LoginUsecase
 	RegisterUsecase
-	ListUsecase
+	//	ListUsecase
 	RegisterStatesUsecase
 }
 
@@ -23,32 +23,32 @@ type delivery struct {
 
 	routes map[string]TgBotHandle
 
-	gamesUsecase          Usecase
-	createUsecase         Usecase
-	loginUsecase          Usecase
-	registerUsecase       Usecase
-	listUsecase           Usecase
+	gamesUsecase    Usecase
+	createUsecase   Usecase
+	loginUsecase    Usecase
+	registerUsecase Usecase
+	//	listUsecase           Usecase
 	registerStatesUsecase Usecase
 }
 
 func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
 	return delivery{
-		bot:                   bot,
-		gamesUsecase:          usecases,
-		createUsecase:         usecases,
-		loginUsecase:          usecases,
-		registerUsecase:       usecases,
-		listUsecase:           usecases,
+		bot:             bot,
+		gamesUsecase:    usecases,
+		createUsecase:   usecases,
+		loginUsecase:    usecases,
+		registerUsecase: usecases,
+		//		listUsecase:           usecases,
 		registerStatesUsecase: usecases,
 	}
 }
 
 var commands []tgbotapi.BotCommand = []tgbotapi.BotCommand{
 	// user
-	{
-		Command:     "games",
-		Description: "список ближайших игр.",
-	},
+	//	{
+	//		Command:     "games",
+	//		Description: "список ближайших игр.",
+	//	},
 	{
 		Command:     "register",
 		Description: "регистрация на игру.",
@@ -63,8 +63,8 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 		"create":   d.Create,
 		"login":    d.Login,
 		"register": d.Register,
-		"list":     d.List,
-		"start":    d.Start,
+		//		"list":     d.List,
+		"start": d.Start,
 	}
 
 	u := tgbotapi.NewUpdate(0)
@@ -79,6 +79,13 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 			update.Message.Chat.IsGroup() ||
 			update.Message.Chat.IsChannel() ||
 			update.Message.Chat.IsSuperGroup() {
+			continue
+		}
+
+		if update.Message.Text == "КвизON" {
+			msg := tgbotapi.NewMessage(update.Message.From.ID, "Ты успешно зарегистрирован! До встречи на игре!(это потом поменяется формулировка)")
+			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+			d.Send(msg)
 			continue
 		}
 

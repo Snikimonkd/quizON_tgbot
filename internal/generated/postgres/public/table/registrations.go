@@ -17,12 +17,16 @@ type registrationsTable struct {
 	postgres.Table
 
 	// Columns
-	GameID    postgres.ColumnInteger
-	TeamID    postgres.ColumnInteger
-	TeamName  postgres.ColumnString
-	UserID    postgres.ColumnInteger
-	CreatedAt postgres.ColumnTimestampz
-	UdpatedAt postgres.ColumnTimestampz
+	UserID      postgres.ColumnInteger
+	TgContact   postgres.ColumnString
+	TeamID      postgres.ColumnInteger
+	TeamName    postgres.ColumnString
+	CaptainName postgres.ColumnString
+	Pnohe       postgres.ColumnString
+	GroupName   postgres.ColumnString
+	Amount      postgres.ColumnString
+	CreatedAt   postgres.ColumnTimestampz
+	UpdatedAt   postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -63,26 +67,34 @@ func newRegistrationsTable(schemaName, tableName, alias string) *RegistrationsTa
 
 func newRegistrationsTableImpl(schemaName, tableName, alias string) registrationsTable {
 	var (
-		GameIDColumn    = postgres.IntegerColumn("game_id")
-		TeamIDColumn    = postgres.IntegerColumn("team_id")
-		TeamNameColumn  = postgres.StringColumn("team_name")
-		UserIDColumn    = postgres.IntegerColumn("user_id")
-		CreatedAtColumn = postgres.TimestampzColumn("created_at")
-		UdpatedAtColumn = postgres.TimestampzColumn("udpated_at")
-		allColumns      = postgres.ColumnList{GameIDColumn, TeamIDColumn, TeamNameColumn, UserIDColumn, CreatedAtColumn, UdpatedAtColumn}
-		mutableColumns  = postgres.ColumnList{GameIDColumn, TeamIDColumn, TeamNameColumn, UserIDColumn, CreatedAtColumn, UdpatedAtColumn}
+		UserIDColumn      = postgres.IntegerColumn("user_id")
+		TgContactColumn   = postgres.StringColumn("tg_contact")
+		TeamIDColumn      = postgres.IntegerColumn("team_id")
+		TeamNameColumn    = postgres.StringColumn("team_name")
+		CaptainNameColumn = postgres.StringColumn("captain_name")
+		PnoheColumn       = postgres.StringColumn("pnohe")
+		GroupNameColumn   = postgres.StringColumn("group_name")
+		AmountColumn      = postgres.StringColumn("amount")
+		CreatedAtColumn   = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn   = postgres.TimestampzColumn("updated_at")
+		allColumns        = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PnoheColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
+		mutableColumns    = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PnoheColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return registrationsTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		GameID:    GameIDColumn,
-		TeamID:    TeamIDColumn,
-		TeamName:  TeamNameColumn,
-		UserID:    UserIDColumn,
-		CreatedAt: CreatedAtColumn,
-		UdpatedAt: UdpatedAtColumn,
+		UserID:      UserIDColumn,
+		TgContact:   TgContactColumn,
+		TeamID:      TeamIDColumn,
+		TeamName:    TeamNameColumn,
+		CaptainName: CaptainNameColumn,
+		Pnohe:       PnoheColumn,
+		GroupName:   GroupNameColumn,
+		Amount:      AmountColumn,
+		CreatedAt:   CreatedAtColumn,
+		UpdatedAt:   UpdatedAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
