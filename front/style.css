@@ -1,0 +1,133 @@
+:root {
+    --my-white: #FFFFFF;
+    --my-transparent-white: #FFFFFF33;
+    --my-yellow: #CBA262;
+    --my-red: #9F2128;
+}
+
+body {
+    background-color: #030B18;
+}
+
+.form {
+    width: 304px;
+    background-color: #0F1A2E;
+    border-radius: 21px;
+}
+
+.center {
+    margin: auto;
+}
+
+.header {
+    padding-top: 17px;
+    box-sizing: border-box;
+    font-size: 19px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    color: var(--my-white);
+    width: fit-content;
+}
+
+.game_num {
+    padding-top: 17px;
+    box-sizing: border-box;
+    font-size: 21px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    color: var(--my-yellow);
+    width: fit-content;
+    width: 256px;
+}
+
+.block_input {
+    margin-top: 11px;
+    width: 256px;
+    height: 51px;
+}
+
+.reg_btn {
+    margin-top: 12px;
+    background: rgba(10, 18, 33, 0.5);
+    border: 1.33428px solid #CBA262;
+    border-radius: 17.3457px;
+
+    width: 247px;
+    height: 25px;
+
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    color: var(--my-white);
+}
+
+.btn_container {
+    width: 256px;
+    font-size: 12px;
+    padding-bottom: 30px;
+}
+
+.error_output {
+    margin-top: 12px;
+    width: 256px;
+    max-width: 256px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    text-wrap: wrap;
+    overflow-wrap: break-word;
+    color: var(--my-red);
+}
+
+.block_text {
+    font-size: 13px;
+    line-height: 15px;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--my-white);
+    font-weight: 700;
+}
+
+::placeholder {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    font-color: var(--my-transparent-white);
+}
+
+.input {
+    padding: 8px;
+    margin-top: 6px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 32px;
+    border-radius: 12px;
+    border-width: 2px;
+    background-color: #0A1221;
+    border-color: var(--my-transparent-white);
+    color: var(--my-white);
+}
+
+.info {
+    display: flex;
+    margin-top: 11px;
+    width: 256px;
+}
+
+.info_clock {
+    max-width: 18px;
+    max-height: 18px;
+}
+
+.info_loc {
+    max-width: 16px;
+    max-height: 21px;
+}
+
+.info_text {
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    margin-left: 8px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+

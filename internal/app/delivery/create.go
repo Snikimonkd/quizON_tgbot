@@ -5,7 +5,7 @@ import (
 	"quizon_bot/internal/generated/postgres/public/model"
 	"strings"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/matterbridge/telegram-bot-api/v6"
 )
 
 type CreateUsecase interface {
