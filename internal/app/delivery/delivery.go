@@ -9,7 +9,7 @@ import (
 
 type Usecase interface {
 	LoginUsecase
-	RegisterStatesUsecase
+	UserStateHandlerUsecase
 	TableUsecase
 	AuthUsecase
 }
@@ -22,7 +22,7 @@ type delivery struct {
 	routes map[string]TgBotHandle
 
 	loginUsecase          LoginUsecase
-	registerStatesUsecase RegisterStatesUsecase
+	registerStatesUsecase UserStateHandlerUsecase
 	tableUsecase          TableUsecase
 	authUsecase           AuthUsecase
 }
@@ -77,7 +77,7 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 				d.Send(res)
 			}
 		} else {
-			res, err := d.RegisterStates(ctx, update)
+			res, err := d.HandleUserState(ctx, update)
 			if err != nil {
 				logger.Errorf("register state error: %w", err)
 			}

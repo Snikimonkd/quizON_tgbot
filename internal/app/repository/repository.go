@@ -8,7 +8,6 @@ import (
 	"quizon_bot/internal/generated/postgres/public/model"
 	"quizon_bot/internal/generated/postgres/public/table"
 	"quizon_bot/internal/logger"
-	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
@@ -133,63 +132,6 @@ func (r repository) CheckTeamsAmount(ctx context.Context) (int64, error) {
 	return lo.FromPtr(res), nil
 }
 
-func (r repository) Games(ctx context.Context, from time.Time) ([]model.Games, error) {
-	stmt := table.Games.SELECT(
-		table.Games.ID,
-		table.Games.CreatedAt,
-		table.Games.UdpatedAt,
-		table.Games.Location,
-		table.Games.Date,
-		table.Games.Description,
-	).WHERE(
-		table.Games.Date.GT_EQ(postgres.TimestampzT(from)),
-	).ORDER_BY(
-		table.Games.Date.ASC(),
-	)
-
-	query, args := stmt.Sql()
-	rows, err := r.db.Query(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("can't query from games: %w", err)
-	}
-	defer rows.Close()
-
-	var res []model.Games
-	for rows.Next() {
-		var row model.Games
-		err = rows.Scan(
-			&row.ID,
-			&row.CreatedAt,
-			&row.UdpatedAt,
-			&row.Location,
-			&row.Date,
-			&row.Description,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("can't scan result of query from games: %w", err)
-		}
-
-		res = append(res, row)
-	}
-
-	return res, nil
-}
-
-func (r repository) Create(ctx context.Context, req model.Games) (int64, error) {
-	stmt := table.Games.INSERT(table.Games.AllColumns.Except(table.Games.ID)).
-		MODEL(req).
-		RETURNING(table.Games.ID)
-
-	query, args := stmt.Sql()
-	var res int64
-	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
-	if err != nil {
-		return 0, fmt.Errorf("can't insert into games: %w", err)
-	}
-
-	return res, nil
-}
-
 func (r repository) UpsertAdmin(ctx context.Context, req model.Admins) error {
 	stmt := table.Admins.INSERT(
 		table.Admins.AllColumns,
@@ -262,39 +204,6 @@ func (r repository) RegisterStart(ctx context.Context, req model.RegistrationsDr
 
 	return nil
 }
-
-// func (r repository) List(ctx context.Context, gameID int) ([]model.Registrations, error) {
-// 	stmt := table.Registrations.SELECT(
-// 		table.Registrations.TeamName,
-// 		table.Registrations.TeamID,
-// 	).WHERE(
-// 		table.Registrations.GameID.EQ(postgres.Int(int64(gameID))),
-// 	).ORDER_BY(
-// 		table.Registrations.CreatedAt.ASC(),
-// 	)
-//
-// 	query, args := stmt.Sql()
-// 	rows, err := r.db.Query(ctx, query, args...)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("can't select from registrations: %w", err)
-// 	}
-// 	defer rows.Close()
-//
-// 	var res []model.Registrations
-// 	for rows.Next() {
-// 		var row model.Registrations
-// 		err = rows.Scan(
-// 			&row.TeamName,
-// 			&row.TeamID,
-// 		)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("can't scan result of select from registrations: %w", err)
-// 		}
-// 		res = append(res, row)
-// 	}
-//
-// 	return res, nil
-// }
 
 func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (model.RegistrationsDraft, error) {
 	stmt := table.RegistrationsDraft.SELECT(

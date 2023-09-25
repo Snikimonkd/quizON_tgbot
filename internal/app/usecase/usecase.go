@@ -9,14 +9,14 @@ import (
 // Repositories - интерфейс инкапсулирующий в себе все репозитории
 type Repositories interface {
 	LoginRepository
-	RegisterStatesRepository
+	UserStatesHandlerRepository
 	TableRepostiory
 	AuthRepository
 }
 
 type usecase struct {
 	loginRepository          LoginRepository
-	registerStatesRepository RegisterStatesRepository
+	registerStatesRepository UserStatesHandlerRepository
 	tableRepostiory          TableRepostiory
 	authRepository           AuthRepository
 	clock                    clock.Clock

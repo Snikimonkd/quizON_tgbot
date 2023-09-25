@@ -52,19 +52,18 @@ const (
 	ONE_MORE_TEAM   State = "one_more_team"
 )
 
-type RegisterStatesRepository interface {
+type UserStatesHandlerRepository interface {
 	UpdateState(ctx context.Context, state model.UserState) error
 	GetState(ctx context.Context, userID int64) (string, error)
 	GetRegistrationDraft(ctx context.Context, userID int64) (model.RegistrationsDraft, error)
 	GenerateTeamID(ctx context.Context) (int64, error)
-	CheckGameID(ctx context.Context, gameID int64) (bool, error)
 	UpdateRegistrationDraft(ctx context.Context, in model.RegistrationsDraft) error
 	CreateRegistration(ctx context.Context, in model.Registrations) error
 	CheckTeamsAmount(ctx context.Context) (int64, error)
 	RegisterStart(ctx context.Context, req model.RegistrationsDraft) error
 }
 
-func (u usecase) RegisterStates(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
+func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
 	userID := update.Message.Chat.ID
 	nickname := update.Message.Chat.UserName
 
