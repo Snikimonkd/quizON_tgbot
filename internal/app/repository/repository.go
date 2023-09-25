@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
+	"github.com/samber/lo"
 )
 
 type repository struct {
@@ -38,6 +39,98 @@ func RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
 	if err != nil {
 		logger.Errorf("can't rollback transaction: %w", err)
 	}
+}
+
+func (r repository) Registrations(ctx context.Context) ([]model.Registrations, error) {
+	stmt := table.Registrations.SELECT(
+		table.Registrations.AllColumns,
+	)
+
+	query, args := stmt.Sql()
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("can't select registrations: %w", err)
+	}
+	defer rows.Close()
+
+	var res []model.Registrations
+	for rows.Next() {
+		var buf model.Registrations
+		err := rows.Scan(
+			&buf.UserID,
+			&buf.TgContact,
+			&buf.TeamID,
+			&buf.TeamName,
+			&buf.CaptainName,
+			&buf.Pnohe,
+			&buf.GroupName,
+			&buf.Amount,
+			&buf.CreatedAt,
+			&buf.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("can't scan result: %w", err)
+		}
+
+		res = append(res, buf)
+	}
+
+	return res, nil
+}
+
+func (r repository) GetState(ctx context.Context, userID int64) (string, error) {
+	stmt := table.UserState.SELECT(
+		table.UserState.State,
+	)
+
+	query, args := stmt.Sql()
+	var state string
+	err := r.db.QueryRow(ctx, query, args...).Scan(&state)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return string(usecase.EMPTY), nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("can't get user state: %w", err)
+	}
+
+	return state, nil
+}
+
+func (r repository) UpdateState(ctx context.Context, state model.UserState) error {
+	stmt := table.UserState.INSERT(
+		table.UserState.AllColumns,
+	).MODEL(
+		state,
+	).ON_CONFLICT(
+		table.UserState.UserID,
+	).DO_UPDATE(
+		postgres.SET(
+			table.UserState.State.SET(table.UserState.EXCLUDED.State),
+		),
+	)
+
+	query, args := stmt.Sql()
+	_, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("can't update user state: %w", err)
+	}
+
+	return nil
+}
+
+func (r repository) CheckTeamsAmount(ctx context.Context) (int64, error) {
+	stmt := table.Registrations.SELECT(
+		postgres.COUNT(postgres.STAR),
+	)
+
+	query, args := stmt.Sql()
+	var res *int64
+	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
+	if err != nil {
+		return 0, fmt.Errorf("can't select max teams amount: %w", err)
+	}
+
+	return lo.FromPtr(res), nil
 }
 
 func (r repository) Games(ctx context.Context, from time.Time) ([]model.Games, error) {
@@ -140,7 +233,21 @@ func (r repository) CheckAuth(ctx context.Context, userID int64) (model.Admins, 
 	return res, nil
 }
 
-func (r repository) Register(ctx context.Context, req model.RegistrationsDraft) error {
+func (r repository) DeletDraft(ctx context.Context, userID int64) error {
+	stmt := table.RegistrationsDraft.DELETE().WHERE(
+		table.Registrations.UserID.EQ(postgres.Int64(userID)),
+	)
+
+	query, args := stmt.Sql()
+	_, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("can't delete from registrations_draft: %w", err)
+	}
+
+	return nil
+}
+
+func (r repository) RegisterStart(ctx context.Context, req model.RegistrationsDraft) error {
 	stmt := table.RegistrationsDraft.INSERT(
 		table.RegistrationsDraft.AllColumns,
 	).MODEL(

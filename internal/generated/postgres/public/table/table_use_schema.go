@@ -15,4 +15,5 @@ func UseSchema(schema string) {
 	Registrations = Registrations.FromSchema(schema)
 	RegistrationsDraft = RegistrationsDraft.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)
+	UserState = UserState.FromSchema(schema)
 }

@@ -1,6 +1,7 @@
 database:
-  dsn: "postgres://postgres:postgrespw@quizon-db:5432/postgres?sslmode=disable"
+  dsn: "postgres://postgres:postgres@localhost:55013/postgres?sslmode=disable"
 
 keys:
   token: "6668880469:AAFNlZheE9kX-hNtemRxaM0MV1MMJ1Ypu0g"
+
 

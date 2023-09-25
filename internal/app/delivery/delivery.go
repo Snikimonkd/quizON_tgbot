@@ -8,12 +8,9 @@ import (
 )
 
 type Usecase interface {
-	GamesUsecase
-	CreateUsecase
 	LoginUsecase
-	RegisterUsecase
-	//	ListUsecase
 	RegisterStatesUsecase
+	TableUsecase
 }
 
 type TgBotHandle func(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error)
@@ -23,48 +20,27 @@ type delivery struct {
 
 	routes map[string]TgBotHandle
 
-	gamesUsecase    Usecase
-	createUsecase   Usecase
-	loginUsecase    Usecase
-	registerUsecase Usecase
-	//	listUsecase           Usecase
-	registerStatesUsecase Usecase
+	loginUsecase          LoginUsecase
+	registerStatesUsecase RegisterStatesUsecase
+	tableUsecase          TableUsecase
 }
 
 func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
 	return delivery{
-		bot:             bot,
-		gamesUsecase:    usecases,
-		createUsecase:   usecases,
-		loginUsecase:    usecases,
-		registerUsecase: usecases,
-		//		listUsecase:           usecases,
+		bot:                   bot,
+		loginUsecase:          usecases,
 		registerStatesUsecase: usecases,
+		tableUsecase:          usecases,
 	}
-}
-
-var commands []tgbotapi.BotCommand = []tgbotapi.BotCommand{
-	// user
-	//	{
-	//		Command:     "games",
-	//		Description: "список ближайших игр.",
-	//	},
-	{
-		Command:     "register",
-		Description: "регистрация на игру.",
-	},
 }
 
 const errorMessage string = "Ой, что-то пошло не так"
 
 func (d *delivery) ListenAndServe(ctx context.Context) {
 	d.routes = map[string]TgBotHandle{
-		"games":    d.Games,
-		"create":   d.Create,
-		"login":    d.Login,
-		"register": d.Register,
-		//		"list":     d.List,
+		"login": d.Login,
 		"start": d.Start,
+		"table": d.Table,
 	}
 
 	u := tgbotapi.NewUpdate(0)
@@ -72,20 +48,12 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 
 	updates := d.bot.GetUpdatesChan(u)
 
-	// Loop through each update.
 	for update := range updates {
 		if update.Message == nil ||
 			update.Message.From.IsBot ||
 			update.Message.Chat.IsGroup() ||
 			update.Message.Chat.IsChannel() ||
 			update.Message.Chat.IsSuperGroup() {
-			continue
-		}
-
-		if update.Message.Text == "КвизON" {
-			msg := tgbotapi.NewMessage(update.Message.From.ID, "Ты успешно зарегистрирован! До встречи на игре!(это потом поменяется формулировка)")
-			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-			d.Send(msg)
 			continue
 		}
 
@@ -105,20 +73,15 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 			if res.Text != "" {
 				d.Send(res)
 			}
-			// dialog
 		} else {
-			// user_id == chat_id -> user
-			if update.Message.Chat.ID == update.Message.From.ID {
-				res, err := d.RegisterStates(ctx, update)
-				if err != nil {
-					logger.Errorf("register state error: %w", err)
-				}
-
-				if res.Text != "" {
-					d.Send(res)
-				}
+			res, err := d.RegisterStates(ctx, update)
+			if err != nil {
+				logger.Errorf("register state error: %w", err)
 			}
-			// else chat -> do nothing
+
+			if res.Text != "" {
+				d.Send(res)
+			}
 		}
 	}
 }

@@ -11,6 +11,7 @@ services:
       - ./postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: "postgrespw"
+      PGDATA: /var/lib/postgresql/data/zalupa/
     ports:
       - "5432:5432"
     networks:

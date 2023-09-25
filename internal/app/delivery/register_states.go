@@ -7,11 +7,10 @@ import (
 )
 
 type RegisterStatesUsecase interface {
-	RegisterStates(ctx context.Context, userID int64, msg string) (tgbotapi.MessageConfig, error)
+	RegisterStates(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error)
 }
 
 func (d delivery) RegisterStates(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
-	msg, err := d.registerStatesUsecase.RegisterStates(ctx, update.Message.From.ID, update.Message.Text)
-	msg.ChatID = update.Message.From.ID
+	msg, err := d.registerStatesUsecase.RegisterStates(ctx, update)
 	return msg, err
 }

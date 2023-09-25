@@ -8,36 +8,24 @@ import (
 
 // Repositories - интерфейс инкапсулирующий в себе все репозитории
 type Repositories interface {
-	GamesRepository
-	CreateRepository
 	LoginRepository
-	CheckAuthRepository
-	RegisterRepository
-	//	ListRepository
 	RegisterStatesRepository
+	TableRepostiory
 }
 
 type usecase struct {
-	gamesRepository     GamesRepository
-	createRepository    CreateRepository
-	loginRepository     LoginRepository
-	checkAuthRepository CheckAuthRepository
-	registerRepository  RegisterRepository
-	//	listRepository           ListRepository
+	loginRepository          LoginRepository
 	registerStatesRepository RegisterStatesRepository
+	tableRepostiory          TableRepostiory
 	clock                    clock.Clock
 }
 
 // NewUsecase - конструктор для usecase
 func NewUsecase(repositories Repositories) usecase {
 	return usecase{
-		gamesRepository:     repositories,
-		createRepository:    repositories,
-		loginRepository:     repositories,
-		checkAuthRepository: repositories,
-		registerRepository:  repositories,
-		//		listRepository:           repositories,
+		loginRepository:          repositories,
 		registerStatesRepository: repositories,
+		tableRepostiory:          repositories,
 		clock:                    clock.New(),
 	}
 }
