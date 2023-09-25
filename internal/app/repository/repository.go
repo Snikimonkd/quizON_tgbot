@@ -369,21 +369,6 @@ func (r repository) GenerateTeamID(ctx context.Context) (int64, error) {
 	return res, nil
 }
 
-func (r repository) CheckGameID(ctx context.Context, gameID int64) (bool, error) {
-	stmt := table.Games.SELECT(postgres.Int64(1)).WHERE(table.Games.ID.EQ(postgres.Int64(gameID)))
-	query, args := stmt.Sql()
-	var res int64
-	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("can't check game_id: %w", err)
-	}
-
-	return true, nil
-}
-
 func (r repository) CreateRegistration(ctx context.Context, in model.Registrations) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {

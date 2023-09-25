@@ -1,7 +1,7 @@
 LOCAL_DB_DSN:=$(shell grep -A1 'database' values/local.yaml | tail -n1 | sed "s/.*dsn: //g" | sed "s/\"//g")
 
 run:
-	go run cmd/main.go
+	ENV=local go run cmd/main.go
 
 t:
 	go test -v -count=1 -p=1 -cover -coverprofile=cover.out.tmp -covermode=atomic -coverpkg ./... ./...

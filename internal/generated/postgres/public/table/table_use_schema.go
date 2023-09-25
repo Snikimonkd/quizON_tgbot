@@ -11,7 +11,6 @@ package table
 // this method only once at the beginning of the program.
 func UseSchema(schema string) {
 	Admins = Admins.FromSchema(schema)
-	Games = Games.FromSchema(schema)
 	Registrations = Registrations.FromSchema(schema)
 	RegistrationsDraft = RegistrationsDraft.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)

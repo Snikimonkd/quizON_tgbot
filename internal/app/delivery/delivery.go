@@ -11,6 +11,7 @@ type Usecase interface {
 	LoginUsecase
 	RegisterStatesUsecase
 	TableUsecase
+	AuthUsecase
 }
 
 type TgBotHandle func(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error)
@@ -23,6 +24,7 @@ type delivery struct {
 	loginUsecase          LoginUsecase
 	registerStatesUsecase RegisterStatesUsecase
 	tableUsecase          TableUsecase
+	authUsecase           AuthUsecase
 }
 
 func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
@@ -31,6 +33,7 @@ func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
 		loginUsecase:          usecases,
 		registerStatesUsecase: usecases,
 		tableUsecase:          usecases,
+		authUsecase:           usecases,
 	}
 }
 

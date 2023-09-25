@@ -32,7 +32,12 @@ func init() {
 	if !ok {
 		logger.Fatalf("can't get config file path")
 	}
-	relativeConfigPath := "values/local.yaml"
+	relativeConfigPath := ""
+	if os.Getenv("ENV") == "local" {
+		relativeConfigPath = "values/local.yaml"
+	} else {
+		relativeConfigPath = "values/prod.yaml"
+	}
 	absoluteConfigPath := filepath.Join(filepath.Dir(currentPath), "../..", relativeConfigPath)
 
 	file, err := os.Open(filepath.Clean(absoluteConfigPath))
