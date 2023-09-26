@@ -43,6 +43,8 @@ func RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
 func (r repository) Registrations(ctx context.Context) ([]model.Registrations, error) {
 	stmt := table.Registrations.SELECT(
 		table.Registrations.AllColumns,
+	).ORDER_BY(
+		table.Registrations.CreatedAt.DESC(),
 	)
 
 	query, args := stmt.Sql()

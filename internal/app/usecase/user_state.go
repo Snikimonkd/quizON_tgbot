@@ -104,19 +104,6 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			return response, nil
 		}
 
-		now := u.clock.Now()
-		req := model.RegistrationsDraft{
-			UserID:    userID,
-			TgContact: nickname,
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-
-		err = u.registerStatesRepository.RegisterStart(ctx, req)
-		if err != nil {
-			return response, err
-		}
-
 		newState := model.UserState{
 			UserID: userID,
 			State:  string(CAPTAIN_NAME),
@@ -135,19 +122,6 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 				State:  string(CAPTAIN_NAME),
 			}
 			err = u.registerStatesRepository.UpdateState(ctx, newState)
-			if err != nil {
-				return response, err
-			}
-
-			now := u.clock.Now()
-			req := model.RegistrationsDraft{
-				UserID:    userID,
-				TgContact: nickname,
-				CreatedAt: now,
-				UpdatedAt: now,
-			}
-
-			err = u.registerStatesRepository.RegisterStart(ctx, req)
 			if err != nil {
 				return response, err
 			}
@@ -173,6 +147,19 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		response.Text = "не пон"
 		return response, nil
 	case string(CAPTAIN_NAME):
+		now := u.clock.Now()
+		req := model.RegistrationsDraft{
+			UserID:    userID,
+			TgContact: nickname,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		err = u.registerStatesRepository.RegisterStart(ctx, req)
+		if err != nil {
+			return response, err
+		}
+
 		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
 		if err != nil {
 			return response, err
@@ -364,19 +351,6 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			State:  string(CAPTAIN_NAME),
 		}
 		err = u.registerStatesRepository.UpdateState(ctx, newState)
-		if err != nil {
-			return response, err
-		}
-
-		now := u.clock.Now()
-		req := model.RegistrationsDraft{
-			UserID:    userID,
-			TgContact: nickname,
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-
-		err = u.registerStatesRepository.RegisterStart(ctx, req)
 		if err != nil {
 			return response, err
 		}
