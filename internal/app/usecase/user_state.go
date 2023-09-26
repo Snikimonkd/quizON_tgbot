@@ -130,6 +130,10 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 
 		if update.Message.Text == "Нет" {
 			response.Text = regNo
+			btn := tgbotapi.NewKeyboardButton("Зарегистрироваться")
+			row := tgbotapi.NewKeyboardButtonRow(btn)
+			keyboard := tgbotapi.NewReplyKeyboard(row)
+			response.ReplyMarkup = &keyboard
 			return response, nil
 		}
 
@@ -332,7 +336,11 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 				return response, err
 			}
 
-			response.Text = "Ну не хочешь, как хочешь..."
+			btn := tgbotapi.NewKeyboardButton("Зарегистрироваться")
+			row := tgbotapi.NewKeyboardButtonRow(btn)
+			keyboard := tgbotapi.NewReplyKeyboard(row)
+			response.ReplyMarkup = &keyboard
+			response.Text = "Ну как хочешь..."
 			return response, nil
 		}
 

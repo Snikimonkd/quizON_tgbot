@@ -12,6 +12,7 @@ type Usecase interface {
 	UserStateHandlerUsecase
 	TableUsecase
 	AuthUsecase
+	StartUsecase
 }
 
 type TgBotHandle func(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error)
@@ -25,6 +26,7 @@ type delivery struct {
 	registerStatesUsecase UserStateHandlerUsecase
 	tableUsecase          TableUsecase
 	authUsecase           AuthUsecase
+	startUsecase          StartUsecase
 }
 
 func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
@@ -34,6 +36,7 @@ func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
 		registerStatesUsecase: usecases,
 		tableUsecase:          usecases,
 		authUsecase:           usecases,
+		startUsecase:          usecases,
 	}
 }
 
@@ -52,12 +55,12 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 	updates := d.bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil ||
-			update.Message.From.IsBot ||
-			update.Message.Chat.IsGroup() ||
-			update.Message.Chat.IsChannel() ||
-			update.Message.Chat.IsSuperGroup() ||
-			update.Message.Sticker != nil {
+		if (update.Message != nil && update.Message.Text == "") ||
+			(update.Message != nil && update.Message.Chat != nil &&
+				(update.Message.Chat.IsGroup() ||
+					update.Message.Chat.IsChannel() ||
+					update.Message.Chat.IsSuperGroup() ||
+					update.Message.Sticker != nil)) {
 			continue
 		}
 

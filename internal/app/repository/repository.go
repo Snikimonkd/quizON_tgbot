@@ -301,3 +301,32 @@ func (r repository) CreateRegistration(ctx context.Context, in model.Registratio
 
 	return nil
 }
+
+func (r repository) Start(ctx context.Context, userID int64) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("can' begin tx: %w", err)
+	}
+	defer RollBackUnlessCommitted(ctx, tx)
+
+	stmt := table.UserState.DELETE().WHERE(table.UserState.UserID.EQ(postgres.Int64(userID)))
+	query, args := stmt.Sql()
+	_, err = tx.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("can't delete from user_states: %w", err)
+	}
+
+	stmt = table.RegistrationsDraft.DELETE().WHERE(table.RegistrationsDraft.UserID.EQ(postgres.Int64(userID)))
+	query, args = stmt.Sql()
+	_, err = tx.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("can't delete from registrations_draft: %w", err)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("can't commit tx: %w", err)
+	}
+
+	return nil
+}
