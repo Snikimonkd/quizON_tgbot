@@ -345,7 +345,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		response.Text = "Хочешь зарегестрировать еще одну команду?"
 		return response, nil
 	case string(ONE_MORE_TEAM):
-		if update.Message.Text != "Да" {
+		if update.Message.Text == "Нет" {
 			newState := model.UserState{
 				UserID: userID,
 				State:  string(REG_END),

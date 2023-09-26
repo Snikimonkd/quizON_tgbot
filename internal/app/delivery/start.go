@@ -16,12 +16,12 @@ const startText string = `КвизOFF?
 ⚡️4 октября, 19:00 
 ⚡️345 ауд. (ГУК) 
 
-Для регистрации жми кнопку *Зарегестрироваться*`
+Для регистрации жми кнопку *Зарегистрироваться*`
 
 // Start - начало диалога
 func (d delivery) Start(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, startText)
-	btn := tgbotapi.NewKeyboardButton("Зарегестрироваться")
+	btn := tgbotapi.NewKeyboardButton("Зарегистрироваться")
 	row := tgbotapi.NewKeyboardButtonRow(btn)
 	keyboard := tgbotapi.NewReplyKeyboard(row)
 	msg.ReplyMarkup = &keyboard
