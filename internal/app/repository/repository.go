@@ -82,6 +82,8 @@ func (r repository) Registrations(ctx context.Context) ([]model.Registrations, e
 func (r repository) GetState(ctx context.Context, userID int64) (string, error) {
 	stmt := table.UserState.SELECT(
 		table.UserState.State,
+	).WHERE(
+		table.UserState.UserID.EQ(postgres.Int64(userID)),
 	)
 
 	query, args := stmt.Sql()
@@ -191,22 +193,6 @@ func (r repository) DeletDraft(ctx context.Context, userID int64) error {
 	return nil
 }
 
-func (r repository) RegisterStart(ctx context.Context, req model.RegistrationsDraft) error {
-	stmt := table.RegistrationsDraft.INSERT(
-		table.RegistrationsDraft.AllColumns,
-	).MODEL(
-		req,
-	)
-
-	query, args := stmt.Sql()
-	_, err := r.db.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("can't insert into registrations_draft: %w", err)
-	}
-
-	return nil
-}
-
 func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (model.RegistrationsDraft, error) {
 	stmt := table.RegistrationsDraft.SELECT(
 		table.RegistrationsDraft.AllColumns,
@@ -240,24 +226,22 @@ func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (mod
 }
 
 func (r repository) UpdateRegistrationDraft(ctx context.Context, in model.RegistrationsDraft) error {
-	stmt := table.RegistrationsDraft.UPDATE(
-		table.RegistrationsDraft.TeamID,
-		table.RegistrationsDraft.TeamName,
-		table.RegistrationsDraft.CaptainName,
-		table.RegistrationsDraft.GroupName,
-		table.RegistrationsDraft.Phone,
-		table.RegistrationsDraft.Amount,
-		table.RegistrationsDraft.UpdatedAt,
-	).SET(
-		in.TeamID,
-		in.TeamName,
-		in.CaptainName,
-		in.GroupName,
-		in.Phone,
-		in.Amount,
-		in.UpdatedAt,
-	).WHERE(
-		table.RegistrationsDraft.UserID.EQ(postgres.Int64(in.UserID)),
+	stmt := table.RegistrationsDraft.INSERT(
+		table.RegistrationsDraft.AllColumns,
+	).MODEL(
+		in,
+	).ON_CONFLICT(
+		table.RegistrationsDraft.UserID,
+	).DO_UPDATE(
+		postgres.SET(
+			table.RegistrationsDraft.TeamID.SET(table.RegistrationsDraft.EXCLUDED.TeamID),
+			table.RegistrationsDraft.TeamName.SET(table.RegistrationsDraft.EXCLUDED.TeamName),
+			table.RegistrationsDraft.CaptainName.SET(table.RegistrationsDraft.EXCLUDED.CaptainName),
+			table.RegistrationsDraft.GroupName.SET(table.RegistrationsDraft.EXCLUDED.GroupName),
+			table.RegistrationsDraft.Phone.SET(table.RegistrationsDraft.EXCLUDED.Phone),
+			table.RegistrationsDraft.Amount.SET(table.RegistrationsDraft.EXCLUDED.Amount),
+			table.RegistrationsDraft.UpdatedAt.SET(table.RegistrationsDraft.EXCLUDED.UpdatedAt),
+		),
 	)
 
 	query, args := stmt.Sql()

@@ -32,13 +32,11 @@ const maxTeamsAmountReached string = `Упс... 👉🏻👈🏻
 
 Хочешь зарегистрироваться в резерв?`
 
-const maxTeamsAmount int64 = 0
+const maxTeamsAmount int64 = 23
 
 type State string
 
 const (
-	UNKNOWN         State = "unknown"
-	REG_BEGIN       State = "reg_begin"
 	EMPTY           State = "empty"
 	REG_IS_FULL     State = "reg_is_full"
 	TEAM_ID         State = "team_id"
@@ -60,12 +58,11 @@ type UserStatesHandlerRepository interface {
 	UpdateRegistrationDraft(ctx context.Context, in model.RegistrationsDraft) error
 	CreateRegistration(ctx context.Context, in model.Registrations) error
 	CheckTeamsAmount(ctx context.Context) (int64, error)
-	RegisterStart(ctx context.Context, req model.RegistrationsDraft) error
 }
 
 func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
-	userID := update.Message.Chat.ID
-	nickname := update.Message.Chat.UserName
+	userID := update.Message.From.ID
+	nickname := update.Message.From.UserName
 
 	response := tgbotapi.MessageConfig{}
 	response.Text = DefaultErrorMessage
@@ -131,47 +128,32 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		}
 
 		if update.Message.Text == "Нет" {
-			newState := model.UserState{
-				UserID: userID,
-				State:  string(EMPTY),
-			}
-			err = u.registerStatesRepository.UpdateState(ctx, newState)
-			if err != nil {
-				return response, err
-			}
-
 			response.Text = regNo
 			return response, nil
 		}
 
-		response.Text = "не пон"
+		yesBtn := tgbotapi.NewKeyboardButton("Да")
+		noBnt := tgbotapi.NewKeyboardButton("Нет")
+		btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
+		keyboard := tgbotapi.NewReplyKeyboard(btnRow)
+		response.ReplyMarkup = &keyboard
+		response.Text = maxTeamsAmountReached
 		return response, nil
 	case string(CAPTAIN_NAME):
-		now := u.clock.Now()
-		req := model.RegistrationsDraft{
-			UserID:    userID,
-			TgContact: nickname,
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-
-		err = u.registerStatesRepository.RegisterStart(ctx, req)
-		if err != nil {
-			return response, err
-		}
-
-		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
-		if err != nil {
-			return response, err
-		}
-
 		teamID, err := u.registerStatesRepository.GenerateTeamID(ctx)
 		if err != nil {
 			return response, err
 		}
 
-		draft.CaptainName = &update.Message.Text
-		draft.TeamID = teamID
+		now := u.clock.Now()
+		draft := model.RegistrationsDraft{
+			UserID:      userID,
+			TgContact:   nickname,
+			CreatedAt:   now,
+			UpdatedAt:   now,
+			TeamID:      teamID,
+			CaptainName: &update.Message.Text,
+		}
 
 		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, draft)
 		if err != nil {
@@ -299,7 +281,10 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		return response, nil
 	case string(QUIZON_QUESTION):
 		if update.Message.Text != "КвизON" {
-			response.Text = "не пон"
+			b := tgbotapi.NewKeyboardButton("КвизON")
+			r := tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{b})
+			response.Text = "КвизOFF?"
+			response.ReplyMarkup = &r
 			return response, nil
 		}
 
@@ -329,7 +314,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
 		keyboard := tgbotapi.NewReplyKeyboard(btnRow)
 		response.ReplyMarkup = &keyboard
-		response.Text = "Хочешь зарегестрировать еще одну команду?"
+		response.Text = "Хочешь зарегистрировать еще одну команду?"
 		return response, nil
 	case string(ONE_MORE_TEAM):
 		if update.Message.Text == "Нет" {
@@ -346,17 +331,43 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			return response, nil
 		}
 
-		newState := model.UserState{
-			UserID: userID,
-			State:  string(CAPTAIN_NAME),
-		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
-		if err != nil {
-			return response, err
-		}
+		if update.Message.Text == "Да" {
+			amount, err := u.registerStatesRepository.CheckTeamsAmount(ctx)
+			if err != nil {
+				return response, err
+			}
 
-		response.Text = "Как тебя зовут? (Пример: Иванов Иван Иванович)"
-		return response, nil
+			if amount >= maxTeamsAmount {
+				newState := model.UserState{
+					UserID: userID,
+					State:  string(REG_IS_FULL),
+				}
+				err := u.registerStatesRepository.UpdateState(ctx, newState)
+				if err != nil {
+					return response, err
+				}
+
+				yesBtn := tgbotapi.NewKeyboardButton("Да")
+				noBnt := tgbotapi.NewKeyboardButton("Нет")
+				btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
+				keyboard := tgbotapi.NewReplyKeyboard(btnRow)
+				response.ReplyMarkup = &keyboard
+				response.Text = maxTeamsAmountReached
+				return response, nil
+			}
+
+			newState := model.UserState{
+				UserID: userID,
+				State:  string(CAPTAIN_NAME),
+			}
+			err = u.registerStatesRepository.UpdateState(ctx, newState)
+			if err != nil {
+				return response, err
+			}
+
+			response.Text = "Как тебя зовут? (Пример: Иванов Иван Иванович)"
+			return response, nil
+		}
 	}
 
 	return response, fmt.Errorf("unknown state: %v", state)
