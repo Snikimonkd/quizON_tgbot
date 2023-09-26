@@ -6,6 +6,7 @@
 .DS_Store
 /.idea
 /.vscode
+posgres_data
 
 *.out.tmp
 *.out
