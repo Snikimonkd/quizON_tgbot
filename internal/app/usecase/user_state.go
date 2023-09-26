@@ -69,6 +69,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 	response.ChatID = userID
 	response.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	response.ParseMode = "Markdown"
+	response.DisableWebPagePreview = true
 
 	state, err := u.registerStatesRepository.GetState(ctx, userID)
 	if err != nil {
@@ -123,7 +124,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 				return response, err
 			}
 
-			response.Text = "Как тебя зовут? (Пример: Иванов Иван Иванович)"
+			response.Text = "Как тебя зовут? (Пример: Николай Эрнестович Бауман)"
 			return response, nil
 		}
 
@@ -169,7 +170,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			return response, err
 		}
 
-		response.Text = "Твоя учебная группа (Пример: РК6-52)"
+		response.Text = "Твоя учебная группа (Пример: СМ1-11)"
 		return response, nil
 	case string(GROUP_NAME):
 		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
@@ -192,7 +193,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			return response, err
 		}
 
-		response.Text = "Номер телефона (Пример: 89156567645)"
+		response.Text = "Номер телефона (Пример: 8(999)888-77-66)"
 		return response, nil
 	case string(PHONE):
 		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
@@ -297,6 +298,10 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			return response, err
 		}
 
+		clown := tgbotapi.NewKeyboardButton("🤡")
+		row := tgbotapi.NewKeyboardButtonRow(clown)
+		keyboard := tgbotapi.NewReplyKeyboard(row)
+		response.ReplyMarkup = &keyboard
 		response.Text = regSuccess
 		return response, nil
 	case string(REG_END):

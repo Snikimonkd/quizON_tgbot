@@ -56,7 +56,8 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 			update.Message.From.IsBot ||
 			update.Message.Chat.IsGroup() ||
 			update.Message.Chat.IsChannel() ||
-			update.Message.Chat.IsSuperGroup() {
+			update.Message.Chat.IsSuperGroup() ||
+			update.Message.Sticker != nil {
 			continue
 		}
 
