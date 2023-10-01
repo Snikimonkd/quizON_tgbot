@@ -17,12 +17,11 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:     []string{"http://localhost:3000", "https://quiz-on.ru", "https://www.quiz-on.ru"},
-		AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:     []string{"Content-Type", "Origin", "User-Agent", "Sec-Fetch-Site", "Sec-Fetch-Mode", "Sec-Fetch-Dest", "Referer", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding", "Accept", "Access-Control-Allow-Headers", "Access-Control-Expose-Headers", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "X-CSRF-Token"},
-		AllowCredentials:   true,
-		OptionsPassthrough: true,
-		MaxAge:             300,
+		AllowedOrigins:   []string{"http://localhost:3000", "https://quiz-on.ru", "https://www.quiz-on.ru"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Origin", "User-Agent", "Sec-Fetch-Site", "Sec-Fetch-Mode", "Sec-Fetch-Dest", "Referer", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding", "Accept", "Access-Control-Allow-Headers", "Access-Control-Expose-Headers", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "X-CSRF-Token"},
+		AllowCredentials: true,
+		MaxAge:           300,
 	}))
 
 	r.Post("/register", func(w http.ResponseWriter, r *http.Request) {
