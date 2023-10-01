@@ -1,13 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"quizon_bot/internal/app/delivery"
-	"quizon_bot/internal/app/repository"
-	"quizon_bot/internal/app/usecase"
-	"quizon_bot/internal/config"
 	"quizon_bot/internal/logger"
 
 	"github.com/go-chi/chi/middleware"
@@ -30,9 +25,6 @@ func main() {
 		MaxAge:             300,
 	}))
 
-	fs := http.FileServer(http.Dir("./front"))
-	r.Handle("/front/*", http.StripPrefix("/front/", fs))
-
 	r.Post("/register", func(w http.ResponseWriter, r *http.Request) {
 		type Kek struct {
 			Lol string
@@ -53,13 +45,13 @@ func main() {
 		return
 	}()
 
-	ctx := context.Background()
-	db := config.ConnectToPostgres(ctx)
-	repository := repository.NewRepository(db)
-	usecase := usecase.NewUsecase(repository)
-
-	bot := config.ConnectToBot()
-
-	app := delivery.NewBotDelivery(bot, usecase)
-	app.ListenAndServe(ctx)
+	// ctx := context.Background()
+	// db := config.ConnectToPostgres(ctx)
+	// repository := repository.NewRepository(db)
+	// usecase := usecase.NewUsecase(repository)
+	//
+	// bot := config.ConnectToBot()
+	//
+	// app := delivery.NewBotDelivery(bot, usecase)
+	// app.ListenAndServe(ctx)
 }
