@@ -22,7 +22,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:     []string{"http://localhost:8000/front", "http://localhost:8000", "https://quiz-on.ru", "https://www.quiz-on.ru"},
+		AllowedOrigins:     []string{"http://localhost:8000/front", "http://localhost:3000", "https://quiz-on.ru", "https://www.quiz-on.ru"},
 		AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:     []string{"Content-Type", "Origin", "Accept", "Access-Control-Allow-Headers", "Access-Control-Expose-Headers", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "X-CSRF-Token"},
 		AllowCredentials:   true,
