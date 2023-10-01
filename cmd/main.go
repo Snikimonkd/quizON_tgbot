@@ -32,11 +32,13 @@ func main() {
 		kek := Kek{Lol: "hello"}
 		b, err := json.Marshal(kek)
 		err = json.NewEncoder(w).Encode(b)
+		w.WriteHeader(200)
 		if err != nil {
 			logger.Errorf("can't write body: %v", err)
 		}
 	})
 
+	logger.Info("server started on port 8080")
 	err := http.ListenAndServe(":8000", r)
 	if err != nil {
 		logger.Fatalf("can't start server: %v", err)
