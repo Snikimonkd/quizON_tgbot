@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"math/rand"
 	"net/http"
 	"quizon_bot/internal/logger"
 
@@ -26,15 +26,10 @@ func main() {
 	}))
 
 	r.Post("/register", func(w http.ResponseWriter, r *http.Request) {
-		type Kek struct {
-			Lol string
-		}
-		kek := Kek{Lol: "hello"}
-		b, err := json.Marshal(kek)
-		w.Write(b)
-		w.WriteHeader(200)
-		if err != nil {
-			logger.Errorf("can't write body: %v", err)
+		if rand.Int63()%10 > 5 {
+			w.WriteHeader(200)
+		} else {
+			w.WriteHeader(500)
 		}
 	})
 

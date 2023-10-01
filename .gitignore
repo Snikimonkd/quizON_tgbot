@@ -11,3 +11,5 @@ postgres_data
 *.out.tmp
 *.out
 cover.html
+
+./values/prod.yaml
