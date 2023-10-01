@@ -37,13 +37,10 @@ func main() {
 		}
 	})
 
-	go func() {
-		err := http.ListenAndServe(":8000", r)
-		if err != nil {
-			logger.Fatalf("can't start server: %v", err)
-		}
-		return
-	}()
+	err := http.ListenAndServe(":8000", r)
+	if err != nil {
+		logger.Fatalf("can't start server: %v", err)
+	}
 
 	// ctx := context.Background()
 	// db := config.ConnectToPostgres(ctx)
