@@ -1,8 +1,9 @@
-package delivery
+package tgbot
 
 import (
 	"context"
 	"quizon_bot/internal/logger"
+	"sync"
 
 	tgbotapi "github.com/matterbridge/telegram-bot-api/v6"
 )
@@ -20,6 +21,8 @@ type TgBotHandle func(ctx context.Context, update tgbotapi.Update) (tgbotapi.Mes
 type delivery struct {
 	bot *tgbotapi.BotAPI
 
+	m sync.Mutex
+
 	routes map[string]TgBotHandle
 
 	loginUsecase          LoginUsecase
@@ -31,6 +34,7 @@ type delivery struct {
 
 func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
 	return delivery{
+		m:                     sync.Mutex{},
 		bot:                   bot,
 		loginUsecase:          usecases,
 		registerStatesUsecase: usecases,
@@ -78,7 +82,7 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 			}
 
 			if res.Text != "" {
-				d.Send(res)
+				go d.Send(res)
 			}
 		} else {
 			res, err := d.HandleUserState(ctx, update)
@@ -87,7 +91,7 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 			}
 
 			if res.Text != "" {
-				d.Send(res)
+				go d.Send(res)
 			}
 		}
 	}

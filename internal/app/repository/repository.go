@@ -7,7 +7,7 @@ import (
 	"quizon_bot/internal/app/usecase"
 	"quizon_bot/internal/generated/postgres/public/model"
 	"quizon_bot/internal/generated/postgres/public/table"
-	"quizon_bot/internal/logger"
+	"quizon_bot/internal/utils"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
@@ -24,20 +24,20 @@ func NewRepository(db *pgx.Conn) repository {
 	}
 }
 
-// RollBackUnlessCommitted - роллбэк, если транзакция не закоммичена
-func RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
-	if tx == nil {
-		return
-	}
+func (r repository) Register(ctx context.Context, tx pgx.Tx, in model.Registrations) error {
+	stmt := table.Registrations.INSERT(
+		table.Registrations.AllColumns,
+	).MODEL(
+		in,
+	)
 
-	err := tx.Rollback(ctx)
-	if err == pgx.ErrTxClosed {
-		return
-	}
-
+	query, args := stmt.Sql()
+	_, err := tx.Exec(ctx, query, args)
 	if err != nil {
-		logger.Errorf("can't rollback transaction: %w", err)
+		return fmt.Errorf("can't insert into registrations: %w", err)
 	}
+
+	return nil
 }
 
 func (r repository) Registrations(ctx context.Context) ([]model.Registrations, error) {
@@ -63,7 +63,7 @@ func (r repository) Registrations(ctx context.Context) ([]model.Registrations, e
 			&buf.TeamID,
 			&buf.TeamName,
 			&buf.CaptainName,
-			&buf.Pnohe,
+			&buf.Phone,
 			&buf.GroupName,
 			&buf.Amount,
 			&buf.CreatedAt,
@@ -79,7 +79,7 @@ func (r repository) Registrations(ctx context.Context) ([]model.Registrations, e
 	return res, nil
 }
 
-func (r repository) GetState(ctx context.Context, userID int64) (string, error) {
+func (r repository) GetState(ctx context.Context, tx pgx.Tx, userID int64) (string, error) {
 	stmt := table.UserState.SELECT(
 		table.UserState.State,
 	).WHERE(
@@ -88,7 +88,7 @@ func (r repository) GetState(ctx context.Context, userID int64) (string, error) 
 
 	query, args := stmt.Sql()
 	var state string
-	err := r.db.QueryRow(ctx, query, args...).Scan(&state)
+	err := tx.QueryRow(ctx, query, args...).Scan(&state)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return string(usecase.EMPTY), nil
 	}
@@ -99,7 +99,7 @@ func (r repository) GetState(ctx context.Context, userID int64) (string, error) 
 	return state, nil
 }
 
-func (r repository) UpdateState(ctx context.Context, state model.UserState) error {
+func (r repository) UpdateState(ctx context.Context, tx pgx.Tx, state model.UserState) error {
 	stmt := table.UserState.INSERT(
 		table.UserState.AllColumns,
 	).MODEL(
@@ -113,7 +113,7 @@ func (r repository) UpdateState(ctx context.Context, state model.UserState) erro
 	)
 
 	query, args := stmt.Sql()
-	_, err := r.db.Exec(ctx, query, args...)
+	_, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("can't update user state: %w", err)
 	}
@@ -121,14 +121,14 @@ func (r repository) UpdateState(ctx context.Context, state model.UserState) erro
 	return nil
 }
 
-func (r repository) CheckTeamsAmount(ctx context.Context) (int64, error) {
+func (r repository) CheckTeamsAmount(ctx context.Context, tx pgx.Tx) (int64, error) {
 	stmt := table.Registrations.SELECT(
 		postgres.COUNT(postgres.STAR),
 	)
 
 	query, args := stmt.Sql()
 	var res *int64
-	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
+	err := tx.QueryRow(ctx, query, args...).Scan(&res)
 	if err != nil {
 		return 0, fmt.Errorf("can't select max teams amount: %w", err)
 	}
@@ -193,7 +193,7 @@ func (r repository) DeletDraft(ctx context.Context, userID int64) error {
 	return nil
 }
 
-func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (model.RegistrationsDraft, error) {
+func (r repository) GetRegistrationDraft(ctx context.Context, tx pgx.Tx, userID int64) (model.RegistrationsDraft, error) {
 	stmt := table.RegistrationsDraft.SELECT(
 		table.RegistrationsDraft.AllColumns,
 	).WHERE(
@@ -202,7 +202,7 @@ func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (mod
 
 	query, args := stmt.Sql()
 	var res model.RegistrationsDraft
-	err := r.db.QueryRow(ctx, query, args...).Scan(
+	err := tx.QueryRow(ctx, query, args...).Scan(
 		&res.UserID,
 		&res.TgContact,
 		&res.TeamID,
@@ -225,7 +225,7 @@ func (r repository) GetRegistrationDraft(ctx context.Context, userID int64) (mod
 	return res, nil
 }
 
-func (r repository) UpdateRegistrationDraft(ctx context.Context, in model.RegistrationsDraft) error {
+func (r repository) UpdateRegistrationDraft(ctx context.Context, tx pgx.Tx, in model.RegistrationsDraft) error {
 	stmt := table.RegistrationsDraft.INSERT(
 		table.RegistrationsDraft.AllColumns,
 	).MODEL(
@@ -245,7 +245,7 @@ func (r repository) UpdateRegistrationDraft(ctx context.Context, in model.Regist
 	)
 
 	query, args := stmt.Sql()
-	_, err := r.db.Exec(ctx, query, args...)
+	_, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("can't update registrations_draft: %w", err)
 	}
@@ -253,10 +253,10 @@ func (r repository) UpdateRegistrationDraft(ctx context.Context, in model.Regist
 	return nil
 }
 
-func (r repository) GenerateTeamID(ctx context.Context) (int64, error) {
+func (r repository) GenerateTeamID(ctx context.Context, tx pgx.Tx) (int64, error) {
 	query := `SELECT nextval('team_id_seq');`
 	var res int64
-	err := r.db.QueryRow(ctx, query).Scan(&res)
+	err := tx.QueryRow(ctx, query).Scan(&res)
 	if err != nil {
 		return 0, fmt.Errorf("can't generate team_id: %w", err)
 	}
@@ -264,13 +264,7 @@ func (r repository) GenerateTeamID(ctx context.Context) (int64, error) {
 	return res, nil
 }
 
-func (r repository) CreateRegistration(ctx context.Context, in model.Registrations) error {
-	tx, err := r.db.Begin(ctx)
-	if err != nil {
-		return fmt.Errorf("can' begin tx: %w", err)
-	}
-	defer RollBackUnlessCommitted(ctx, tx)
-
+func (r repository) CreateRegistration(ctx context.Context, tx pgx.Tx, in model.Registrations) error {
 	createRegStmt := table.Registrations.INSERT(
 		table.Registrations.AllColumns,
 	).MODEL(
@@ -278,7 +272,7 @@ func (r repository) CreateRegistration(ctx context.Context, in model.Registratio
 	)
 
 	query, args := createRegStmt.Sql()
-	_, err = tx.Exec(ctx, query, args...)
+	_, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("can't insert into registrations: %w", err)
 	}
@@ -294,11 +288,6 @@ func (r repository) CreateRegistration(ctx context.Context, in model.Registratio
 		return fmt.Errorf("can't delete registration draft: %w", err)
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return fmt.Errorf("can't commit tx: %w", err)
-	}
-
 	return nil
 }
 
@@ -307,7 +296,7 @@ func (r repository) Start(ctx context.Context, userID int64) error {
 	if err != nil {
 		return fmt.Errorf("can' begin tx: %w", err)
 	}
-	defer RollBackUnlessCommitted(ctx, tx)
+	defer utils.RollBackUnlessCommitted(ctx, tx)
 
 	stmt := table.UserState.DELETE().WHERE(table.UserState.UserID.EQ(postgres.Int64(userID)))
 	query, args := stmt.Sql()
@@ -324,6 +313,24 @@ func (r repository) Start(ctx context.Context, userID int64) error {
 	}
 
 	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("can't commit tx: %w", err)
+	}
+
+	return nil
+}
+
+func (r repository) Begin(ctx context.Context) (pgx.Tx, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("can't begin tx: %w", err)
+	}
+
+	return tx, nil
+}
+
+func (r repository) Commit(ctx context.Context, tx pgx.Tx) error {
+	err := tx.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("can't commit tx: %w", err)
 	}

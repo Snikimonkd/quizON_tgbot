@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"quizon_bot/internal/generated/postgres/public/model"
+	"quizon_bot/internal/utils"
 
+	"github.com/jackc/pgx/v5"
 	tgbotapi "github.com/matterbridge/telegram-bot-api/v6"
 )
 
@@ -51,101 +53,51 @@ const (
 )
 
 type UserStatesHandlerRepository interface {
-	UpdateState(ctx context.Context, state model.UserState) error
-	GetState(ctx context.Context, userID int64) (string, error)
-	GetRegistrationDraft(ctx context.Context, userID int64) (model.RegistrationsDraft, error)
-	GenerateTeamID(ctx context.Context) (int64, error)
-	UpdateRegistrationDraft(ctx context.Context, in model.RegistrationsDraft) error
-	CreateRegistration(ctx context.Context, in model.Registrations) error
-	CheckTeamsAmount(ctx context.Context) (int64, error)
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Commit(ctx context.Context, tx pgx.Tx) error
+	UpdateState(ctx context.Context, tx pgx.Tx, state model.UserState) error
+	GetState(ctx context.Context, tx pgx.Tx, userID int64) (string, error)
+	GetRegistrationDraft(ctx context.Context, tx pgx.Tx, userID int64) (model.RegistrationsDraft, error)
+	GenerateTeamID(ctx context.Context, tx pgx.Tx) (int64, error)
+	UpdateRegistrationDraft(ctx context.Context, tx pgx.Tx, in model.RegistrationsDraft) error
+	CreateRegistration(ctx context.Context, tx pgx.Tx, in model.Registrations) error
+	CheckTeamsAmount(ctx context.Context, tx pgx.Tx) (int64, error)
 }
 
-func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
-	userID := update.Message.From.ID
-	nickname := update.Message.From.UserName
-
+func defaultMessage(userID int64) tgbotapi.MessageConfig {
 	response := tgbotapi.MessageConfig{}
 	response.Text = DefaultErrorMessage
 	response.ChatID = userID
 	response.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	response.ParseMode = "Markdown"
 	response.DisableWebPagePreview = true
+	return response
+}
 
-	state, err := u.registerStatesRepository.GetState(ctx, userID)
+func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
+	userID := update.Message.From.ID
+	nickname := update.Message.From.UserName
+
+	response := defaultMessage(userID)
+
+	tx, err := u.registerStatesRepository.Begin(ctx)
+	if err != nil {
+		return response, err
+	}
+	defer utils.RollBackUnlessCommitted(ctx, tx)
+
+	state, err := u.registerStatesRepository.GetState(ctx, tx, userID)
 	if err != nil {
 		return response, err
 	}
 
 	switch state {
 	case string(EMPTY):
-		amount, err := u.registerStatesRepository.CheckTeamsAmount(ctx)
-		if err != nil {
-			return response, err
-		}
-
-		if amount >= maxTeamsAmount {
-			newState := model.UserState{
-				UserID: userID,
-				State:  string(REG_IS_FULL),
-			}
-			err := u.registerStatesRepository.UpdateState(ctx, newState)
-			if err != nil {
-				return response, err
-			}
-
-			yesBtn := tgbotapi.NewKeyboardButton("Да")
-			noBnt := tgbotapi.NewKeyboardButton("Нет")
-			btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
-			keyboard := tgbotapi.NewReplyKeyboard(btnRow)
-			response.ReplyMarkup = &keyboard
-			response.Text = maxTeamsAmountReached
-			return response, nil
-		}
-
-		newState := model.UserState{
-			UserID: userID,
-			State:  string(CAPTAIN_NAME),
-		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
-		if err != nil {
-			return response, err
-		}
-
-		response.Text = "Как тебя зовут? (Пример: Иванов Иван Иванович)"
-		return response, nil
+		return u.empty(ctx, userID)
 	case string(REG_IS_FULL):
-		if update.Message.Text == "Да" {
-			newState := model.UserState{
-				UserID: userID,
-				State:  string(CAPTAIN_NAME),
-			}
-			err = u.registerStatesRepository.UpdateState(ctx, newState)
-			if err != nil {
-				return response, err
-			}
-
-			response.Text = "Как тебя зовут? (Пример: Николай Эрнестович Бауман)"
-			return response, nil
-		}
-
-		if update.Message.Text == "Нет" {
-			response.Text = regNo
-			btn := tgbotapi.NewKeyboardButton("Зарегистрироваться")
-			row := tgbotapi.NewKeyboardButtonRow(btn)
-			keyboard := tgbotapi.NewReplyKeyboard(row)
-			response.ReplyMarkup = &keyboard
-			return response, nil
-		}
-
-		yesBtn := tgbotapi.NewKeyboardButton("Да")
-		noBnt := tgbotapi.NewKeyboardButton("Нет")
-		btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
-		keyboard := tgbotapi.NewReplyKeyboard(btnRow)
-		response.ReplyMarkup = &keyboard
-		response.Text = maxTeamsAmountReached
-		return response, nil
+		return u.regIsFul(ctx, userID, update.Message.Text)
 	case string(CAPTAIN_NAME):
-		teamID, err := u.registerStatesRepository.GenerateTeamID(ctx)
+		teamID, err := u.registerStatesRepository.GenerateTeamID(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -160,7 +112,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			CaptainName: &update.Message.Text,
 		}
 
-		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, draft)
+		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, tx, draft)
 		if err != nil {
 			return response, err
 		}
@@ -169,7 +121,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(GROUP_NAME),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+		if err != nil {
+			return response, err
+		}
+
+		err = u.registerStatesRepository.Commit(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -177,13 +134,13 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		response.Text = "Твоя учебная группа (Пример: СМ1-11)"
 		return response, nil
 	case string(GROUP_NAME):
-		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
+		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, tx, userID)
 		if err != nil {
 			return response, err
 		}
 
 		draft.GroupName = &update.Message.Text
-		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, draft)
+		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, tx, draft)
 		if err != nil {
 			return response, err
 		}
@@ -192,7 +149,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(PHONE),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+		if err != nil {
+			return response, err
+		}
+
+		err = u.registerStatesRepository.Commit(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -200,13 +162,13 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		response.Text = "Номер телефона (Пример: 8(999)888-77-66)"
 		return response, nil
 	case string(PHONE):
-		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
+		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, tx, userID)
 		if err != nil {
 			return response, err
 		}
 
 		draft.Phone = &update.Message.Text
-		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, draft)
+		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, tx, draft)
 		if err != nil {
 			return response, err
 		}
@@ -215,7 +177,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(TEAM_NAME),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+		if err != nil {
+			return response, err
+		}
+
+		err = u.registerStatesRepository.Commit(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -223,13 +190,13 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		response.Text = "Название вашей команды"
 		return response, nil
 	case string(TEAM_NAME):
-		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
+		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, tx, userID)
 		if err != nil {
 			return response, err
 		}
 
 		draft.TeamName = &update.Message.Text
-		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, draft)
+		err = u.registerStatesRepository.UpdateRegistrationDraft(ctx, tx, draft)
 		if err != nil {
 			return response, err
 		}
@@ -238,7 +205,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(AMOUNT),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+		if err != nil {
+			return response, err
+		}
+
+		err = u.registerStatesRepository.Commit(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -246,7 +218,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		response.Text = "Сколько человек в вашей команде? (В команде может быть от 4 до 8 человек)"
 		return response, nil
 	case string(AMOUNT):
-		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, userID)
+		draft, err := u.registerStatesRepository.GetRegistrationDraft(ctx, tx, userID)
 		if err != nil {
 			return response, err
 		}
@@ -257,7 +229,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID:      draft.UserID,
 			TgContact:   draft.TgContact,
 			TeamID:      draft.TeamID,
-			Pnohe:       *draft.Phone,
+			Phone:       *draft.Phone,
 			TeamName:    *draft.TeamName,
 			CaptainName: *draft.CaptainName,
 			GroupName:   *draft.GroupName,
@@ -265,7 +237,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			CreatedAt:   draft.CreatedAt,
 			UpdatedAt:   draft.UpdatedAt,
 		}
-		err = u.registerStatesRepository.CreateRegistration(ctx, reg)
+		err = u.registerStatesRepository.CreateRegistration(ctx, tx, reg)
 		if err != nil {
 			return response, err
 		}
@@ -274,7 +246,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(QUIZON_QUESTION),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+		if err != nil {
+			return response, err
+		}
+
+		err = u.registerStatesRepository.Commit(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -297,7 +274,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(REG_END),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+		if err != nil {
+			return response, err
+		}
+
+		err = u.registerStatesRepository.Commit(ctx, tx)
 		if err != nil {
 			return response, err
 		}
@@ -313,16 +295,17 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 			UserID: userID,
 			State:  string(ONE_MORE_TEAM),
 		}
-		err = u.registerStatesRepository.UpdateState(ctx, newState)
+		err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
 		if err != nil {
 			return response, err
 		}
 
-		yesBtn := tgbotapi.NewKeyboardButton("Да")
-		noBnt := tgbotapi.NewKeyboardButton("Нет")
-		btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
-		keyboard := tgbotapi.NewReplyKeyboard(btnRow)
-		response.ReplyMarkup = &keyboard
+		err = u.registerStatesRepository.Commit(ctx, tx)
+		if err != nil {
+			return response, err
+		}
+
+		response.ReplyMarkup = CreateYesNoKeyboard()
 		response.Text = "Хочешь зарегистрировать еще одну команду?"
 		return response, nil
 	case string(ONE_MORE_TEAM):
@@ -331,7 +314,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 				UserID: userID,
 				State:  string(REG_END),
 			}
-			err = u.registerStatesRepository.UpdateState(ctx, newState)
+			err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
 			if err != nil {
 				return response, err
 			}
@@ -345,7 +328,7 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		}
 
 		if update.Message.Text == "Да" {
-			amount, err := u.registerStatesRepository.CheckTeamsAmount(ctx)
+			amount, err := u.registerStatesRepository.CheckTeamsAmount(ctx, tx)
 			if err != nil {
 				return response, err
 			}
@@ -355,16 +338,17 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 					UserID: userID,
 					State:  string(REG_IS_FULL),
 				}
-				err := u.registerStatesRepository.UpdateState(ctx, newState)
+				err := u.registerStatesRepository.UpdateState(ctx, tx, newState)
 				if err != nil {
 					return response, err
 				}
 
-				yesBtn := tgbotapi.NewKeyboardButton("Да")
-				noBnt := tgbotapi.NewKeyboardButton("Нет")
-				btnRow := tgbotapi.NewKeyboardButtonRow(yesBtn, noBnt)
-				keyboard := tgbotapi.NewReplyKeyboard(btnRow)
-				response.ReplyMarkup = &keyboard
+				err = u.registerStatesRepository.Commit(ctx, tx)
+				if err != nil {
+					return response, err
+				}
+
+				response.ReplyMarkup = CreateYesNoKeyboard()
 				response.Text = maxTeamsAmountReached
 				return response, nil
 			}
@@ -373,7 +357,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 				UserID: userID,
 				State:  string(CAPTAIN_NAME),
 			}
-			err = u.registerStatesRepository.UpdateState(ctx, newState)
+			err = u.registerStatesRepository.UpdateState(ctx, tx, newState)
+			if err != nil {
+				return response, err
+			}
+
+			err = u.registerStatesRepository.Commit(ctx, tx)
 			if err != nil {
 				return response, err
 			}

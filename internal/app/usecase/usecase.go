@@ -13,6 +13,7 @@ type Repositories interface {
 	TableRepostiory
 	AuthRepository
 	StartRepository
+	RegisterRepository
 }
 
 type usecase struct {
@@ -21,6 +22,7 @@ type usecase struct {
 	tableRepostiory          TableRepostiory
 	authRepository           AuthRepository
 	startRepository          StartRepository
+	registerRepository       RegisterRepository
 	clock                    clock.Clock
 }
 
@@ -32,7 +34,9 @@ func NewUsecase(repositories Repositories) usecase {
 		tableRepostiory:          repositories,
 		authRepository:           repositories,
 		startRepository:          repositories,
-		clock:                    clock.New(),
+		registerRepository:       repositories,
+
+		clock: clock.New(),
 	}
 }
 

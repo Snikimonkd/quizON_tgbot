@@ -1,4 +1,4 @@
-package delivery
+package tgbot
 
 import (
 	"context"
@@ -14,7 +14,7 @@ type AuthUsecase interface {
 	CheckAuth(ctx context.Context, userID int64) (bool, error)
 }
 
-func (d delivery) Table(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
+func (d *delivery) Table(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
 	ok, err := d.authUsecase.CheckAuth(ctx, update.Message.From.ID)
 	if err != nil {
 		return tgbotapi.NewMessage(update.Message.From.ID, "ойой"), err

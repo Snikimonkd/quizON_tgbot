@@ -30,7 +30,7 @@ func (u usecase) Table(ctx context.Context, update tgbotapi.Update) (tgbotapi.Me
 		row = append(row, fmt.Sprintf("%d", v.TeamID))
 		row = append(row, v.CaptainName)
 		row = append(row, v.TgContact)
-		row = append(row, v.Pnohe)
+		row = append(row, v.Phone)
 		row = append(row, v.GroupName)
 		row = append(row, v.Amount)
 

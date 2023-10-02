@@ -17,7 +17,7 @@ type Registrations struct {
 	TeamID      int64
 	TeamName    string
 	CaptainName string
-	Pnohe       string
+	Phone       string
 	GroupName   string
 	Amount      string
 	CreatedAt   time.Time

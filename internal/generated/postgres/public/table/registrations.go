@@ -22,7 +22,7 @@ type registrationsTable struct {
 	TeamID      postgres.ColumnInteger
 	TeamName    postgres.ColumnString
 	CaptainName postgres.ColumnString
-	Pnohe       postgres.ColumnString
+	Phone       postgres.ColumnString
 	GroupName   postgres.ColumnString
 	Amount      postgres.ColumnString
 	CreatedAt   postgres.ColumnTimestampz
@@ -72,13 +72,13 @@ func newRegistrationsTableImpl(schemaName, tableName, alias string) registration
 		TeamIDColumn      = postgres.IntegerColumn("team_id")
 		TeamNameColumn    = postgres.StringColumn("team_name")
 		CaptainNameColumn = postgres.StringColumn("captain_name")
-		PnoheColumn       = postgres.StringColumn("pnohe")
+		PhoneColumn       = postgres.StringColumn("phone")
 		GroupNameColumn   = postgres.StringColumn("group_name")
 		AmountColumn      = postgres.StringColumn("amount")
 		CreatedAtColumn   = postgres.TimestampzColumn("created_at")
 		UpdatedAtColumn   = postgres.TimestampzColumn("updated_at")
-		allColumns        = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PnoheColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
-		mutableColumns    = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PnoheColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
+		allColumns        = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PhoneColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
+		mutableColumns    = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PhoneColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return registrationsTable{
@@ -90,7 +90,7 @@ func newRegistrationsTableImpl(schemaName, tableName, alias string) registration
 		TeamID:      TeamIDColumn,
 		TeamName:    TeamNameColumn,
 		CaptainName: CaptainNameColumn,
-		Pnohe:       PnoheColumn,
+		Phone:       PhoneColumn,
 		GroupName:   GroupNameColumn,
 		Amount:      AmountColumn,
 		CreatedAt:   CreatedAtColumn,

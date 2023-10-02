@@ -1,4 +1,4 @@
-package delivery
+package tgbot
 
 import (
 	"quizon_bot/internal/logger"
@@ -10,10 +10,12 @@ import (
 // Send - отправляет сообщение с ретраями
 func (d *delivery) Send(msg tgbotapi.MessageConfig) {
 	for i := 0; i < 5; i++ {
+		d.m.Lock()
 		_, err := d.bot.Send(msg)
+		d.m.Unlock()
 		if err != nil {
 			logger.Errorf("can't send message: %v", err)
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second * 3)
 		} else {
 			return
 		}

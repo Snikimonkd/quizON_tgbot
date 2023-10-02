@@ -1,4 +1,4 @@
-package delivery
+package tgbot
 
 import (
 	"context"
@@ -10,7 +10,7 @@ type UserStateHandlerUsecase interface {
 	HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error)
 }
 
-func (d delivery) HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
+func (d *delivery) HandleUserState(ctx context.Context, update tgbotapi.Update) (tgbotapi.MessageConfig, error) {
 	msg, err := d.registerStatesUsecase.HandleUserState(ctx, update)
 	return msg, err
 }

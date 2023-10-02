@@ -12,4 +12,4 @@ postgres_data
 *.out
 cover.html
 
-./values/prod.yaml
+values
