@@ -48,8 +48,8 @@ const errorMessage string = "Ой, что-то пошло не так"
 
 func (d *delivery) ListenAndServe(ctx context.Context) {
 	d.routes = map[string]TgBotHandle{
-		"login": d.Login,
 		"start": d.Start,
+		"login": d.Login,
 		"table": d.Table,
 	}
 

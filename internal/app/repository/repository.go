@@ -24,7 +24,7 @@ func NewRepository(db *pgx.Conn) repository {
 	}
 }
 
-func (r repository) Register(ctx context.Context, tx pgx.Tx, in model.Registrations) error {
+func (r repository) Register(ctx context.Context, in model.Registrations) error {
 	stmt := table.Registrations.INSERT(
 		table.Registrations.AllColumns,
 	).MODEL(
@@ -32,7 +32,7 @@ func (r repository) Register(ctx context.Context, tx pgx.Tx, in model.Registrati
 	)
 
 	query, args := stmt.Sql()
-	_, err := tx.Exec(ctx, query, args)
+	_, err := r.db.Exec(ctx, query, args)
 	if err != nil {
 		return fmt.Errorf("can't insert into registrations: %w", err)
 	}

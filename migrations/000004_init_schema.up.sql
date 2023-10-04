@@ -1,7 +1,7 @@
 CREATE TABLE registrations_draft (
     user_id bigint NOT NULL UNIQUE,
     tg_contact text NOT NULL,
-    team_id bigint NOT NULL,
+    team_id bigint,
     team_name text,
     captain_name text,
     group_name text,
@@ -10,5 +10,3 @@ CREATE TABLE registrations_draft (
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL
 );
-
-CREATE SEQUENCE team_id_seq START 1;

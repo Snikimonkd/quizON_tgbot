@@ -14,7 +14,7 @@ import (
 type Registrations struct {
 	UserID      int64
 	TgContact   string
-	TeamID      int64
+	TeamID      *int64
 	TeamName    string
 	CaptainName string
 	Phone       string

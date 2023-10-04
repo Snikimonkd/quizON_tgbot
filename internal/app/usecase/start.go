@@ -23,20 +23,32 @@ type StartRepository interface {
 }
 
 func (u usecase) Start(ctx context.Context, userID int64) (tgbotapi.MessageConfig, error) {
-	msg := tgbotapi.NewMessage(userID, DefaultErrorMessage)
-	msg.ParseMode = "Markdown"
-	msg.DisableWebPagePreview = true
+	//	msg := tgbotapi.NewMessage(userID, DefaultErrorMessage)
+	//	msg.ParseMode = "Markdown"
+	//	msg.DisableWebPagePreview = true
+	//
+	//	err := u.startRepository.Start(ctx, userID)
+	//	if err != nil {
+	//		return msg, err
+	//	}
+	//
+	//	msg.Text = startText
+	//	btn := tgbotapi.NewKeyboardButton("Зарегистрироваться")
+	//	row := tgbotapi.NewKeyboardButtonRow(btn)
+	//	keyboard := tgbotapi.NewReplyKeyboard(row)
+	//	msg.ReplyMarkup = &keyboard
 
-	err := u.startRepository.Start(ctx, userID)
-	if err != nil {
-		return msg, err
+	msg := tgbotapi.MessageConfig{
+		BaseChat: tgbotapi.BaseChat{
+			ChatID: userID,
+		},
+		Text: "Жми на кнопку",
 	}
 
-	msg.Text = startText
-	btn := tgbotapi.NewKeyboardButton("Зарегистрироваться")
-	row := tgbotapi.NewKeyboardButtonRow(btn)
-	keyboard := tgbotapi.NewReplyKeyboard(row)
-	msg.ReplyMarkup = &keyboard
+	btn := tgbotapi.NewInlineKeyboardButtonWebApp("Зрегистрироваться", tgbotapi.WebAppInfo{URL: "https://quiz-on.ru"})
+	row := tgbotapi.NewInlineKeyboardRow(btn)
+	markup := tgbotapi.NewInlineKeyboardMarkup(row)
+	msg.ReplyMarkup = &markup
 
 	return msg, nil
 }

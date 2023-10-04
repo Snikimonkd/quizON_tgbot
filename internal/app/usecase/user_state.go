@@ -97,18 +97,12 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 	case string(REG_IS_FULL):
 		return u.regIsFul(ctx, userID, update.Message.Text)
 	case string(CAPTAIN_NAME):
-		teamID, err := u.registerStatesRepository.GenerateTeamID(ctx, tx)
-		if err != nil {
-			return response, err
-		}
-
 		now := u.clock.Now()
 		draft := model.RegistrationsDraft{
 			UserID:      userID,
 			TgContact:   nickname,
 			CreatedAt:   now,
 			UpdatedAt:   now,
-			TeamID:      teamID,
 			CaptainName: &update.Message.Text,
 		}
 
