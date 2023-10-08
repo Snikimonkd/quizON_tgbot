@@ -1,7 +1,7 @@
 CREATE TABLE registrations_draft (
     user_id bigint NOT NULL UNIQUE,
     tg_contact text NOT NULL,
-    team_id bigint,
+    team_id text,
     team_name text,
     captain_name text,
     group_name text,

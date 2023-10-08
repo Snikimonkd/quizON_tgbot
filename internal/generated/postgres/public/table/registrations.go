@@ -19,7 +19,7 @@ type registrationsTable struct {
 	// Columns
 	UserID      postgres.ColumnInteger
 	TgContact   postgres.ColumnString
-	TeamID      postgres.ColumnInteger
+	TeamID      postgres.ColumnString
 	TeamName    postgres.ColumnString
 	CaptainName postgres.ColumnString
 	Phone       postgres.ColumnString
@@ -69,7 +69,7 @@ func newRegistrationsTableImpl(schemaName, tableName, alias string) registration
 	var (
 		UserIDColumn      = postgres.IntegerColumn("user_id")
 		TgContactColumn   = postgres.StringColumn("tg_contact")
-		TeamIDColumn      = postgres.IntegerColumn("team_id")
+		TeamIDColumn      = postgres.StringColumn("team_id")
 		TeamNameColumn    = postgres.StringColumn("team_name")
 		CaptainNameColumn = postgres.StringColumn("captain_name")
 		PhoneColumn       = postgres.StringColumn("phone")

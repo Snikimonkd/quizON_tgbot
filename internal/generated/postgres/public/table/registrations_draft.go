@@ -19,7 +19,7 @@ type registrationsDraftTable struct {
 	// Columns
 	UserID      postgres.ColumnInteger
 	TgContact   postgres.ColumnString
-	TeamID      postgres.ColumnInteger
+	TeamID      postgres.ColumnString
 	TeamName    postgres.ColumnString
 	CaptainName postgres.ColumnString
 	GroupName   postgres.ColumnString
@@ -69,7 +69,7 @@ func newRegistrationsDraftTableImpl(schemaName, tableName, alias string) registr
 	var (
 		UserIDColumn      = postgres.IntegerColumn("user_id")
 		TgContactColumn   = postgres.StringColumn("tg_contact")
-		TeamIDColumn      = postgres.IntegerColumn("team_id")
+		TeamIDColumn      = postgres.StringColumn("team_id")
 		TeamNameColumn    = postgres.StringColumn("team_name")
 		CaptainNameColumn = postgres.StringColumn("captain_name")
 		GroupNameColumn   = postgres.StringColumn("group_name")
