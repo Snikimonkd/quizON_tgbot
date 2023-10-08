@@ -45,7 +45,7 @@ func (u usecase) Start(ctx context.Context, userID int64) (tgbotapi.MessageConfi
 		Text: "Жми на кнопку",
 	}
 
-	btn := tgbotapi.NewInlineKeyboardButtonWebApp("Зрегистрироваться", tgbotapi.WebAppInfo{URL: "https://quiz-on.ru"})
+	btn := tgbotapi.NewInlineKeyboardButtonWebApp("Зарегистрироваться", tgbotapi.WebAppInfo{URL: "https://quiz-on.ru"})
 	row := tgbotapi.NewInlineKeyboardRow(btn)
 	markup := tgbotapi.NewInlineKeyboardMarkup(row)
 	msg.ReplyMarkup = &markup
