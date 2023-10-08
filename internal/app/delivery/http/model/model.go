@@ -6,7 +6,7 @@ type Register struct {
 	TeamID      *int64 `json:"team_id,omitempty"`
 	TeamName    string `json:"team_name"`
 	CaptainName string `json:"captain_name"`
-	Pnohe       string `json:"pnohe"`
+	Phone       string `json:"phone"`
 	GroupName   string `json:"group_name"`
 	Amount      string `json:"amount"`
 }
