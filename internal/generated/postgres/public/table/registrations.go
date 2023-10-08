@@ -17,7 +17,6 @@ type registrationsTable struct {
 	postgres.Table
 
 	// Columns
-	UserID      postgres.ColumnInteger
 	TgContact   postgres.ColumnString
 	TeamID      postgres.ColumnString
 	TeamName    postgres.ColumnString
@@ -67,7 +66,6 @@ func newRegistrationsTable(schemaName, tableName, alias string) *RegistrationsTa
 
 func newRegistrationsTableImpl(schemaName, tableName, alias string) registrationsTable {
 	var (
-		UserIDColumn      = postgres.IntegerColumn("user_id")
 		TgContactColumn   = postgres.StringColumn("tg_contact")
 		TeamIDColumn      = postgres.StringColumn("team_id")
 		TeamNameColumn    = postgres.StringColumn("team_name")
@@ -77,15 +75,14 @@ func newRegistrationsTableImpl(schemaName, tableName, alias string) registration
 		AmountColumn      = postgres.StringColumn("amount")
 		CreatedAtColumn   = postgres.TimestampzColumn("created_at")
 		UpdatedAtColumn   = postgres.TimestampzColumn("updated_at")
-		allColumns        = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PhoneColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
-		mutableColumns    = postgres.ColumnList{UserIDColumn, TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PhoneColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
+		allColumns        = postgres.ColumnList{TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PhoneColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
+		mutableColumns    = postgres.ColumnList{TgContactColumn, TeamIDColumn, TeamNameColumn, CaptainNameColumn, PhoneColumn, GroupNameColumn, AmountColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return registrationsTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		UserID:      UserIDColumn,
 		TgContact:   TgContactColumn,
 		TeamID:      TeamIDColumn,
 		TeamName:    TeamNameColumn,

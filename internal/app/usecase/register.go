@@ -14,7 +14,6 @@ type RegisterRepository interface {
 func (u usecase) Register(ctx context.Context, req httpModel.Register) error {
 	now := u.clock.Now()
 	domainModel := model.Registrations{
-		UserID:      req.UserID,
 		TgContact:   req.TgContact,
 		TeamID:      req.TeamID,
 		TeamName:    req.TeamName,

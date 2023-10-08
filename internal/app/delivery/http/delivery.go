@@ -10,15 +10,18 @@ import (
 
 type Usecase interface {
 	RegisterUsecase
+	RegistrationsUsecase
 }
 
 type delivery struct {
-	registerUsecase RegisterUsecase
+	registerUsecase      RegisterUsecase
+	registrationsUsecase RegistrationsUsecase
 }
 
 func NewDelivery(usecase Usecase) *delivery {
 	return &delivery{
-		registerUsecase: usecase,
+		registerUsecase:      usecase,
+		registrationsUsecase: usecase,
 	}
 }
 

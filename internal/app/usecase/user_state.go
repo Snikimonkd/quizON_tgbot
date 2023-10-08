@@ -220,7 +220,6 @@ func (u usecase) HandleUserState(ctx context.Context, update tgbotapi.Update) (t
 		draft.Amount = &update.Message.Text
 
 		reg := model.Registrations{
-			UserID:      draft.UserID,
 			TgContact:   draft.TgContact,
 			TeamID:      draft.TeamID,
 			Phone:       *draft.Phone,

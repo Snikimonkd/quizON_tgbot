@@ -10,19 +10,19 @@ import (
 type Repositories interface {
 	LoginRepository
 	UserStatesHandlerRepository
-	TableRepostiory
 	AuthRepository
 	StartRepository
 	RegisterRepository
+	RegistrationsRepository
 }
 
 type usecase struct {
 	loginRepository          LoginRepository
 	registerStatesRepository UserStatesHandlerRepository
-	tableRepostiory          TableRepostiory
 	authRepository           AuthRepository
 	startRepository          StartRepository
 	registerRepository       RegisterRepository
+	registrationsRepository  RegistrationsRepository
 	clock                    clock.Clock
 }
 
@@ -31,10 +31,10 @@ func NewUsecase(repositories Repositories) usecase {
 	return usecase{
 		loginRepository:          repositories,
 		registerStatesRepository: repositories,
-		tableRepostiory:          repositories,
 		authRepository:           repositories,
 		startRepository:          repositories,
 		registerRepository:       repositories,
+		registrationsRepository:  repositories,
 
 		clock: clock.New(),
 	}

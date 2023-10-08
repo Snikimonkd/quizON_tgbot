@@ -12,7 +12,6 @@ import (
 )
 
 type Registrations struct {
-	UserID      int64
 	TgContact   string
 	TeamID      *string
 	TeamName    string

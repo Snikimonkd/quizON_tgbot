@@ -1,5 +1,4 @@
 CREATE TABLE registrations (
-    user_id bigint NOT NULL,
     tg_contact text NOT NULL,
     team_id text,
     team_name text NOT NULL,

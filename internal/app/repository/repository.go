@@ -24,6 +24,43 @@ func NewRepository(db *pgx.Conn) repository {
 	}
 }
 
+func (r repository) Registrations(ctx context.Context) ([]model.Registrations, error) {
+	stmt := table.Registrations.SELECT(
+		table.Registrations.AllColumns,
+	).ORDER_BY(
+		table.Registrations.CreatedAt.ASC(),
+	)
+
+	query, args := stmt.Sql()
+	var res []model.Registrations
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("can't select from registrations: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var buf model.Registrations
+		rErr := rows.Scan(
+			&buf.TgContact,
+			&buf.TeamID,
+			&buf.TeamName,
+			&buf.CaptainName,
+			&buf.Phone,
+			&buf.GroupName,
+			&buf.Amount,
+			&buf.CreatedAt,
+			&buf.UpdatedAt,
+		)
+		if rErr != nil {
+			return nil, fmt.Errorf("can't scan games: %w", err)
+		}
+		res = append(res, buf)
+	}
+
+	return res, nil
+}
+
 func (r repository) Register(ctx context.Context, in model.Registrations) error {
 	stmt := table.Registrations.INSERT(
 		table.Registrations.AllColumns,
@@ -38,45 +75,6 @@ func (r repository) Register(ctx context.Context, in model.Registrations) error 
 	}
 
 	return nil
-}
-
-func (r repository) Registrations(ctx context.Context) ([]model.Registrations, error) {
-	stmt := table.Registrations.SELECT(
-		table.Registrations.AllColumns,
-	).ORDER_BY(
-		table.Registrations.CreatedAt.DESC(),
-	)
-
-	query, args := stmt.Sql()
-	rows, err := r.db.Query(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("can't select registrations: %w", err)
-	}
-	defer rows.Close()
-
-	var res []model.Registrations
-	for rows.Next() {
-		var buf model.Registrations
-		err := rows.Scan(
-			&buf.UserID,
-			&buf.TgContact,
-			&buf.TeamID,
-			&buf.TeamName,
-			&buf.CaptainName,
-			&buf.Phone,
-			&buf.GroupName,
-			&buf.Amount,
-			&buf.CreatedAt,
-			&buf.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("can't scan result: %w", err)
-		}
-
-		res = append(res, buf)
-	}
-
-	return res, nil
 }
 
 func (r repository) GetState(ctx context.Context, tx pgx.Tx, userID int64) (string, error) {
@@ -181,7 +179,7 @@ func (r repository) CheckAuth(ctx context.Context, userID int64) (model.Admins, 
 
 func (r repository) DeletDraft(ctx context.Context, userID int64) error {
 	stmt := table.RegistrationsDraft.DELETE().WHERE(
-		table.Registrations.UserID.EQ(postgres.Int64(userID)),
+		table.RegistrationsDraft.UserID.EQ(postgres.Int64(userID)),
 	)
 
 	query, args := stmt.Sql()
@@ -278,9 +276,7 @@ func (r repository) CreateRegistration(ctx context.Context, tx pgx.Tx, in model.
 	}
 
 	deleteDraftStmt := table.RegistrationsDraft.DELETE().
-		WHERE(
-			table.RegistrationsDraft.UserID.EQ(postgres.Int64(in.UserID)),
-		)
+		WHERE(table.RegistrationsDraft.TgContact.EQ(postgres.String(in.TgContact)))
 
 	query, args = deleteDraftStmt.Sql()
 	_, err = tx.Exec(ctx, query, args...)

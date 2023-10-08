@@ -11,8 +11,6 @@ import (
 type Usecase interface {
 	LoginUsecase
 	UserStateHandlerUsecase
-	TableUsecase
-	AuthUsecase
 	StartUsecase
 }
 
@@ -27,8 +25,6 @@ type delivery struct {
 
 	loginUsecase          LoginUsecase
 	registerStatesUsecase UserStateHandlerUsecase
-	tableUsecase          TableUsecase
-	authUsecase           AuthUsecase
 	startUsecase          StartUsecase
 }
 
@@ -38,8 +34,6 @@ func NewBotDelivery(bot *tgbotapi.BotAPI, usecases Usecase) delivery {
 		bot:                   bot,
 		loginUsecase:          usecases,
 		registerStatesUsecase: usecases,
-		tableUsecase:          usecases,
-		authUsecase:           usecases,
 		startUsecase:          usecases,
 	}
 }
@@ -50,7 +44,6 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 	d.routes = map[string]TgBotHandle{
 		"start": d.Start,
 		"login": d.Login,
-		"table": d.Table,
 	}
 
 	u := tgbotapi.NewUpdate(0)
