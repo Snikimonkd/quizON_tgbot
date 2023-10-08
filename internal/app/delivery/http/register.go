@@ -1,7 +1,6 @@
 package http
 
 import (
-	"math/rand"
 	"net/http"
 	httpModel "quizon_bot/internal/app/delivery/http/model"
 	"quizon_bot/internal/logger"
@@ -26,12 +25,5 @@ func (d *delivery) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error(err.Error())
 		ResponseWithJson(w, http.StatusBadRequest, Error{Msg: err.Error()})
-	}
-
-	_ = r.Context()
-
-	if rand.Int63()%10 > 5 {
-	} else {
-		w.WriteHeader(500)
 	}
 }
