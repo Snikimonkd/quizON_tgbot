@@ -24,6 +24,8 @@ func (d *delivery) Register(w http.ResponseWriter, r *http.Request) {
 	err = d.registerUsecase.Register(ctx, req)
 	if err != nil {
 		logger.Error(err.Error())
-		ResponseWithJson(w, http.StatusBadRequest, Error{Msg: err.Error()})
+		ResponseWithJson(w, http.StatusInternalServerError, Error{Msg: err.Error()})
 	}
+
+	ResponseWithJson(w, http.StatusOK, nil)
 }

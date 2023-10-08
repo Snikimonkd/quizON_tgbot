@@ -3,6 +3,9 @@ LOCAL_DB_DSN:=$(shell grep -A1 'database' values/local.yaml | tail -n1 | sed "s/
 run:
 	ENV="local" go run cmd/main.go
 
+run-compose:
+	docker compose up --build -d
+
 t:
 	go test -v -count=1 -p=1 -cover -coverprofile=cover.out.tmp -covermode=atomic -coverpkg ./... ./...
 
