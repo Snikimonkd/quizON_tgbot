@@ -32,7 +32,7 @@ func (r repository) Register(ctx context.Context, in model.Registrations) error 
 	)
 
 	query, args := stmt.Sql()
-	_, err := r.db.Exec(ctx, query, args)
+	_, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("can't insert into registrations: %w", err)
 	}

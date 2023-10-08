@@ -22,6 +22,10 @@ func NewDelivery(usecase Usecase) *delivery {
 	}
 }
 
+type Error struct {
+	Msg string `json:"msg"`
+}
+
 func ResponseWithJson(w http.ResponseWriter, code int, body interface{}) {
 	w.WriteHeader(code)
 	if body == nil {

@@ -17,12 +17,12 @@ func (d *delivery) Register(w http.ResponseWriter, r *http.Request) {
 	var req httpModel.Register
 	err := UnmarshalRequest(r.Body, &req)
 	if err != nil {
-		ResponseWithJson(w, http.StatusBadRequest, nil)
+		ResponseWithJson(w, http.StatusBadRequest, Error{Msg: err.Error()})
 	}
 
 	err = d.registerUsecase.Register(ctx, req)
 	if err != nil {
-		ResponseWithJson(w, http.StatusBadRequest, nil)
+		ResponseWithJson(w, http.StatusBadRequest, Error{Msg: err.Error()})
 	}
 
 	_ = r.Context()
