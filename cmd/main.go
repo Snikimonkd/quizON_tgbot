@@ -46,6 +46,7 @@ func main() {
 
 	router.Post("/register", httpDelivery.Register)
 	router.Get("/registrations", httpDelivery.Registrations)
+	router.Get("/register-available", httpDelivery.RegisterAvailable)
 
 	logger.Info("server started on port 8080")
 	err := http.ListenAndServe(":8000", router)

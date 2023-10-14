@@ -20,3 +20,7 @@ type Registration struct {
 	GroupName   string  `json:"group_name"`
 	Amount      string  `json:"amount"`
 }
+
+type RegisterAvailable struct {
+	Ok bool `json:"ok"`
+}

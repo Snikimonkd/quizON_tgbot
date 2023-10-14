@@ -78,14 +78,15 @@ func (d *delivery) ListenAndServe(ctx context.Context) {
 				go d.Send(res)
 			}
 		} else {
-			res, err := d.HandleUserState(ctx, update)
-			if err != nil {
-				logger.Errorf("register state error: %w", err)
-			}
-
-			if res.Text != "" {
-				go d.Send(res)
-			}
+			continue
+			//			res, err := d.HandleUserState(ctx, update)
+			//			if err != nil {
+			//				logger.Errorf("register state error: %w", err)
+			//			}
+			//
+			//			if res.Text != "" {
+			//				go d.Send(res)
+			//			}
 		}
 	}
 }

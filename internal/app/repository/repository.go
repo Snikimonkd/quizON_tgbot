@@ -24,6 +24,17 @@ func NewRepository(db *pgx.Conn) repository {
 	}
 }
 
+func (r repository) RegisterAvailable(ctx context.Context) (bool, error) {
+	query := `SELECT COUNT(1) < COALESCE((SELECT max_teams_amount FROM GAMES LIMIT 1), 0) FROM games;`
+	var res bool
+	err := r.db.QueryRow(ctx, query).Scan(&res)
+	if err != nil {
+		return false, fmt.Errorf("can't check register available: %w", err)
+	}
+
+	return res, nil
+}
+
 func (r repository) Registrations(ctx context.Context) ([]model.Registrations, error) {
 	stmt := table.Registrations.SELECT(
 		table.Registrations.AllColumns,

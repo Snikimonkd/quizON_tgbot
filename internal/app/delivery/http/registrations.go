@@ -15,7 +15,6 @@ type RegistrationsUsecase interface {
 
 func (d *delivery) Registrations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
 	res, err := d.registrationsUsecase.Registrations(ctx)
 	if err != nil {
 		logger.Error(err.Error())
@@ -24,5 +23,4 @@ func (d *delivery) Registrations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseWithJson(w, http.StatusOK, res)
-
 }
