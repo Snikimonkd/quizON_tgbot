@@ -22,5 +22,5 @@ func (d *delivery) RegisterAvailable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ResponseWithJson(w, http.StatusOK, httpModel.RegisterAvailable{Ok: ok})
+	ResponseWithJson(w, http.StatusOK, httpModel.RegisterAvailable{Available: ok})
 }

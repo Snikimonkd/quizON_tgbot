@@ -22,5 +22,5 @@ type Registration struct {
 }
 
 type RegisterAvailable struct {
-	Ok bool `json:"ok"`
+	Available bool `json:"available"`
 }
