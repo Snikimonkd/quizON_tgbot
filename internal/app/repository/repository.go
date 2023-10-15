@@ -24,6 +24,36 @@ func NewRepository(db *pgx.Conn) repository {
 	}
 }
 
+func (r repository) RegistrationsAmount(ctx context.Context) (int64, error) {
+	stmt := table.Registrations.SELECT(
+		postgres.COUNT(postgres.STAR),
+	)
+
+	query, args := stmt.Sql()
+	var res *int64
+	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
+	if err != nil {
+		return 0, fmt.Errorf("can't get registrations amount: %w", err)
+	}
+
+	return lo.FromPtr(res), nil
+}
+
+func (r repository) SelectRegistrationRestrictions(ctx context.Context) (model.Games, error) {
+	stmt := table.Games.SELECT(
+		table.Games.AllColumns,
+	).LIMIT(1)
+
+	query, args := stmt.Sql()
+	var res model.Games
+	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
+	if err != nil {
+		return model.Games{}, fmt.Errorf("can't get registration restrictions: %w", err)
+	}
+
+	return res, nil
+}
+
 func (r repository) RegisterAvailable(ctx context.Context) (bool, error) {
 	query := `SELECT COUNT(1) < COALESCE((SELECT max_teams_amount FROM GAMES LIMIT 1), 0) FROM registrations;`
 	var res bool

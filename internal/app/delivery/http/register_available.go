@@ -10,7 +10,7 @@ import (
 )
 
 type RegisterAvailableUsecase interface {
-	RegisterAvailable(ctx context.Context) (bool, error)
+	RegisterAvailable(ctx context.Context) (httpModel.RegistrationStatus, error)
 }
 
 func (d *delivery) RegisterAvailable(w http.ResponseWriter, r *http.Request) {

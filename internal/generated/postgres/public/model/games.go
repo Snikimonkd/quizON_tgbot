@@ -8,5 +8,6 @@
 package model
 
 type Games struct {
-	MaxTeamsAmount int64
+	Reserve int64
+	Closed  int64
 }

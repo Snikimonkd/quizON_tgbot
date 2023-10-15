@@ -17,7 +17,8 @@ type gamesTable struct {
 	postgres.Table
 
 	// Columns
-	MaxTeamsAmount postgres.ColumnInteger
+	Reserve postgres.ColumnInteger
+	Closed  postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -58,16 +59,18 @@ func newGamesTable(schemaName, tableName, alias string) *GamesTable {
 
 func newGamesTableImpl(schemaName, tableName, alias string) gamesTable {
 	var (
-		MaxTeamsAmountColumn = postgres.IntegerColumn("max_teams_amount")
-		allColumns           = postgres.ColumnList{MaxTeamsAmountColumn}
-		mutableColumns       = postgres.ColumnList{MaxTeamsAmountColumn}
+		ReserveColumn  = postgres.IntegerColumn("reserve")
+		ClosedColumn   = postgres.IntegerColumn("closed")
+		allColumns     = postgres.ColumnList{ReserveColumn, ClosedColumn}
+		mutableColumns = postgres.ColumnList{ReserveColumn, ClosedColumn}
 	)
 
 	return gamesTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		MaxTeamsAmount: MaxTeamsAmountColumn,
+		Reserve: ReserveColumn,
+		Closed:  ClosedColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

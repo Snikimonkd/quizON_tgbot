@@ -27,7 +27,7 @@ func Test_repository_RegisterAvailable(t *testing.T) {
 			prep: func() {
 				testsupport.TruncateRegistrations(t, db)
 				testsupport.TruncateGames(t, db)
-				stmt := table.Games.INSERT(table.Games.MaxTeamsAmount).VALUES(postgres.Int64(10))
+				stmt := table.Games.INSERT(table.Games.Reserve).VALUES(postgres.Int64(10))
 				query, args := stmt.Sql()
 				_, err := db.Exec(ctx, query, args...)
 				if err != nil {
@@ -53,7 +53,7 @@ func Test_repository_RegisterAvailable(t *testing.T) {
 					CreatedAt:   time.Now(),
 					UpdatedAt:   time.Now(),
 				})
-				stmt := table.Games.INSERT(table.Games.MaxTeamsAmount).VALUES(postgres.Int64(1))
+				stmt := table.Games.INSERT(table.Games.Reserve).VALUES(postgres.Int64(1))
 				query, args := stmt.Sql()
 				_, err := db.Exec(ctx, query, args...)
 				if err != nil {

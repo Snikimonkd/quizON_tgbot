@@ -22,5 +22,13 @@ type Registration struct {
 }
 
 type RegisterAvailable struct {
-	Available bool `json:"available"`
+	Available RegistrationStatus `json:"available"`
 }
+
+type RegistrationStatus string
+
+const (
+	Available RegistrationStatus = "available"
+	Reserve   RegistrationStatus = "reserve"
+	Closed    RegistrationStatus = "closed"
+)

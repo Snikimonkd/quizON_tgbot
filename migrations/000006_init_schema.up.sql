@@ -1,3 +1,4 @@
 CREATE TABLE games (
-    max_teams_amount bigint NOT NULL
+    reserve bigint NOT NULL,
+    closed bigint NOT NULL
 );
