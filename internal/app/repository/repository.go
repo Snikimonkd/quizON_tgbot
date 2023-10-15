@@ -41,12 +41,13 @@ func (r repository) RegistrationsAmount(ctx context.Context) (int64, error) {
 
 func (r repository) SelectRegistrationRestrictions(ctx context.Context) (model.Games, error) {
 	stmt := table.Games.SELECT(
-		table.Games.AllColumns,
+		table.Games.Reserve,
+		table.Games.Closed,
 	).LIMIT(1)
 
 	query, args := stmt.Sql()
 	var res model.Games
-	err := r.db.QueryRow(ctx, query, args...).Scan(&res)
+	err := r.db.QueryRow(ctx, query, args...).Scan(&res.Reserve, &res.Closed)
 	if err != nil {
 		return model.Games{}, fmt.Errorf("can't get registration restrictions: %w", err)
 	}
