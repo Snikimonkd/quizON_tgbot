@@ -8,7 +8,6 @@ import (
 
 	httpDelivery "quizon_bot/internal/app/delivery/http"
 
-	tgbotDelivery "quizon_bot/internal/app/delivery/tgbot"
 	"quizon_bot/internal/app/repository"
 	"quizon_bot/internal/app/usecase"
 )
@@ -23,29 +22,8 @@ func main() {
 	usecase := usecase.NewUsecase(repository)
 	httpDelivery := httpDelivery.NewDelivery(usecase)
 
-	botAPI := config.ConnectToBot()
-	tgbot := tgbotDelivery.NewBotDelivery(botAPI, usecase)
-
-	go func() {
-		f := func() {
-			defer func() {
-				r := recover()
-				if r != nil {
-					logger.Error("panic recovered: %v", r)
-				}
-			}()
-
-			logger.Infof("bot is ready")
-			tgbot.ListenAndServe(ctx)
-		}
-
-		for {
-			f()
-		}
-	}()
-
 	router.Post("/register", httpDelivery.Register)
-	router.Get("/registrations", httpDelivery.Registrations)
+	//	router.Get("/registrations", httpDelivery.Registrations)
 	router.Get("/register-available", httpDelivery.RegisterAvailable)
 
 	logger.Info("server started on port 8080")
