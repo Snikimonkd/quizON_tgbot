@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func TruncateGames(t *testing.T, db *pgx.Conn) {
+func TruncateGames(t *testing.T, db *pgxpool.Pool) {
 	query := "TRUNCATE games"
 	_, err := db.Exec(context.Background(), query)
 	if err != nil {

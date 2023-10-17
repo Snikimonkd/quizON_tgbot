@@ -11,14 +11,15 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/samber/lo"
 )
 
 type repository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewRepository(db *pgx.Conn) repository {
+func NewRepository(db *pgxpool.Pool) repository {
 	return repository{
 		db: db,
 	}
