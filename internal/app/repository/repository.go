@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"quizon_bot/internal/app/usecase"
-	"quizon_bot/internal/generated/postgres/public/model"
-	"quizon_bot/internal/generated/postgres/public/table"
-	"quizon_bot/internal/utils"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/samber/lo"
+
+	"quizon_bot/internal/app/usecase"
+	"quizon_bot/internal/generated/postgres/public/model"
+	"quizon_bot/internal/generated/postgres/public/table"
+	"quizon_bot/internal/utils"
 )
 
 type repository struct {
@@ -44,11 +45,16 @@ func (r repository) SelectRegistrationRestrictions(ctx context.Context) (model.G
 	stmt := table.Games.SELECT(
 		table.Games.Reserve,
 		table.Games.Closed,
+		table.Games.OpenningTime,
 	).LIMIT(1)
 
 	query, args := stmt.Sql()
 	var res model.Games
-	err := r.db.QueryRow(ctx, query, args...).Scan(&res.Reserve, &res.Closed)
+	err := r.db.QueryRow(ctx, query, args...).Scan(
+		&res.Reserve,
+		&res.Closed,
+		&res.OpenningTime,
+	)
 	if err != nil {
 		return model.Games{}, fmt.Errorf("can't get registration restrictions: %w", err)
 	}
@@ -234,7 +240,11 @@ func (r repository) DeletDraft(ctx context.Context, userID int64) error {
 	return nil
 }
 
-func (r repository) GetRegistrationDraft(ctx context.Context, tx pgx.Tx, userID int64) (model.RegistrationsDraft, error) {
+func (r repository) GetRegistrationDraft(
+	ctx context.Context,
+	tx pgx.Tx,
+	userID int64,
+) (model.RegistrationsDraft, error) {
 	stmt := table.RegistrationsDraft.SELECT(
 		table.RegistrationsDraft.AllColumns,
 	).WHERE(
@@ -260,13 +270,20 @@ func (r repository) GetRegistrationDraft(ctx context.Context, tx pgx.Tx, userID 
 		return model.RegistrationsDraft{}, usecase.ErrNotFound
 	}
 	if err != nil {
-		return model.RegistrationsDraft{}, fmt.Errorf("can't select from registrations draft: %w", err)
+		return model.RegistrationsDraft{}, fmt.Errorf(
+			"can't select from registrations draft: %w",
+			err,
+		)
 	}
 
 	return res, nil
 }
 
-func (r repository) UpdateRegistrationDraft(ctx context.Context, tx pgx.Tx, in model.RegistrationsDraft) error {
+func (r repository) UpdateRegistrationDraft(
+	ctx context.Context,
+	tx pgx.Tx,
+	in model.RegistrationsDraft,
+) error {
 	stmt := table.RegistrationsDraft.INSERT(
 		table.RegistrationsDraft.AllColumns,
 	).MODEL(
@@ -305,7 +322,11 @@ func (r repository) GenerateTeamID(ctx context.Context, tx pgx.Tx) (int64, error
 	return res, nil
 }
 
-func (r repository) CreateRegistration(ctx context.Context, tx pgx.Tx, in model.Registrations) error {
+func (r repository) CreateRegistration(
+	ctx context.Context,
+	tx pgx.Tx,
+	in model.Registrations,
+) error {
 	createRegStmt := table.Registrations.INSERT(
 		table.Registrations.AllColumns,
 	).MODEL(
@@ -344,7 +365,8 @@ func (r repository) Start(ctx context.Context, userID int64) error {
 		return fmt.Errorf("can't delete from user_states: %w", err)
 	}
 
-	stmt = table.RegistrationsDraft.DELETE().WHERE(table.RegistrationsDraft.UserID.EQ(postgres.Int64(userID)))
+	stmt = table.RegistrationsDraft.DELETE().
+		WHERE(table.RegistrationsDraft.UserID.EQ(postgres.Int64(userID)))
 	query, args = stmt.Sql()
 	_, err = tx.Exec(ctx, query, args...)
 	if err != nil {

@@ -17,8 +17,9 @@ type gamesTable struct {
 	postgres.Table
 
 	// Columns
-	Reserve postgres.ColumnInteger
-	Closed  postgres.ColumnInteger
+	Reserve      postgres.ColumnInteger
+	Closed       postgres.ColumnInteger
+	OpenningTime postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -59,18 +60,20 @@ func newGamesTable(schemaName, tableName, alias string) *GamesTable {
 
 func newGamesTableImpl(schemaName, tableName, alias string) gamesTable {
 	var (
-		ReserveColumn  = postgres.IntegerColumn("reserve")
-		ClosedColumn   = postgres.IntegerColumn("closed")
-		allColumns     = postgres.ColumnList{ReserveColumn, ClosedColumn}
-		mutableColumns = postgres.ColumnList{ReserveColumn, ClosedColumn}
+		ReserveColumn      = postgres.IntegerColumn("reserve")
+		ClosedColumn       = postgres.IntegerColumn("closed")
+		OpenningTimeColumn = postgres.TimestampzColumn("openning_time")
+		allColumns         = postgres.ColumnList{ReserveColumn, ClosedColumn, OpenningTimeColumn}
+		mutableColumns     = postgres.ColumnList{ReserveColumn, ClosedColumn, OpenningTimeColumn}
 	)
 
 	return gamesTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		Reserve: ReserveColumn,
-		Closed:  ClosedColumn,
+		Reserve:      ReserveColumn,
+		Closed:       ClosedColumn,
+		OpenningTime: OpenningTimeColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
