@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
 	"quizon_bot/internal/logger"
 )
 
@@ -15,8 +16,9 @@ type Usecase interface {
 }
 
 type delivery struct {
-	registerUsecase          RegisterUsecase
-	registrationsUsecase     RegistrationsUsecase
+	registerUsecase      RegisterUsecase
+	registrationsUsecase RegistrationsUsecase
+	//	loginUsecase             LoginUsecase
 	registerAvailableUsecase RegisterAvailableUsecase
 }
 
@@ -25,6 +27,7 @@ func NewDelivery(usecase Usecase) *delivery {
 		registerUsecase:          usecase,
 		registrationsUsecase:     usecase,
 		registerAvailableUsecase: usecase,
+		//		loginUsecase:             usecase,
 	}
 }
 

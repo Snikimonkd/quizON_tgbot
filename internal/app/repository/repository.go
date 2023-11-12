@@ -126,48 +126,6 @@ func (r repository) Register(ctx context.Context, in model.Registrations) error 
 	return nil
 }
 
-func (r repository) GetState(ctx context.Context, tx pgx.Tx, userID int64) (string, error) {
-	stmt := table.UserState.SELECT(
-		table.UserState.State,
-	).WHERE(
-		table.UserState.UserID.EQ(postgres.Int64(userID)),
-	)
-
-	query, args := stmt.Sql()
-	var state string
-	err := tx.QueryRow(ctx, query, args...).Scan(&state)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return string(usecase.EMPTY), nil
-	}
-	if err != nil {
-		return "", fmt.Errorf("can't get user state: %w", err)
-	}
-
-	return state, nil
-}
-
-func (r repository) UpdateState(ctx context.Context, tx pgx.Tx, state model.UserState) error {
-	stmt := table.UserState.INSERT(
-		table.UserState.AllColumns,
-	).MODEL(
-		state,
-	).ON_CONFLICT(
-		table.UserState.UserID,
-	).DO_UPDATE(
-		postgres.SET(
-			table.UserState.State.SET(table.UserState.EXCLUDED.State),
-		),
-	)
-
-	query, args := stmt.Sql()
-	_, err := tx.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("can't update user state: %w", err)
-	}
-
-	return nil
-}
-
 func (r repository) CheckTeamsAmount(ctx context.Context, tx pgx.Tx) (int64, error) {
 	stmt := table.Registrations.SELECT(
 		postgres.COUNT(postgres.STAR),

@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"quizon_bot/internal/logger"
 	"time"
+
+	"quizon_bot/internal/logger"
 )
 
 // LocMsk - default timezone
@@ -18,5 +19,5 @@ func init() {
 
 // PrettyTime - форматирует время в удобный для чтения формат
 func PrettyTime(time time.Time) string {
-	return time.In(LocMsk).Format("2006-01-02 15:04:05 MST")
+	return time.In(LocMsk).Format("2006-01-02 15:04:05")
 }

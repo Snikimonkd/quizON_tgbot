@@ -8,20 +8,14 @@ import (
 
 // Repositories - интерфейс инкапсулирующий в себе все репозитории
 type Repositories interface {
-	LoginRepository
-	UserStatesHandlerRepository
-	AuthRepository
-	StartRepository
+	//	LoginRepository
 	RegisterRepository
 	RegistrationsRepository
 	RegisterAvailableRepository
 }
 
 type usecase struct {
-	loginRepository             LoginRepository
-	registerStatesRepository    UserStatesHandlerRepository
-	authRepository              AuthRepository
-	startRepository             StartRepository
+	//	loginRepository             LoginRepository
 	registerRepository          RegisterRepository
 	registrationsRepository     RegistrationsRepository
 	registerAvailableRepository RegisterAvailableRepository
@@ -31,10 +25,7 @@ type usecase struct {
 // NewUsecase - конструктор для usecase
 func NewUsecase(repositories Repositories) usecase {
 	return usecase{
-		loginRepository:             repositories,
-		registerStatesRepository:    repositories,
-		authRepository:              repositories,
-		startRepository:             repositories,
+		//	loginRepository:             repositories,
 		registerRepository:          repositories,
 		registrationsRepository:     repositories,
 		registerAvailableRepository: repositories,
