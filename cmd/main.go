@@ -22,7 +22,7 @@ func main() {
 	httpDelivery := httpDelivery.NewDelivery(usecase)
 
 	router.Post("/register", httpDelivery.Register)
-	router.Get("/registrations", httpDelivery.Registrations)
+	router.Post("/registrations", httpDelivery.Registrations)
 	router.Get("/register-available", httpDelivery.RegisterAvailable)
 	//	router.Post("/login", httpDelivery.Login)
 
