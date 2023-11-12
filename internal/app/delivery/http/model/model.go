@@ -28,7 +28,8 @@ type RegisterAvailable struct {
 type RegistrationStatus string
 
 const (
-	Available RegistrationStatus = "available"
-	Reserve   RegistrationStatus = "reserve"
-	Closed    RegistrationStatus = "closed"
+	Available    RegistrationStatus = "available"
+	Reserve      RegistrationStatus = "reserve"
+	Closed       RegistrationStatus = "closed"
+	NotOpenedYet RegistrationStatus = "not_opened_yet"
 )

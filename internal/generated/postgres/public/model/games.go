@@ -7,7 +7,12 @@
 
 package model
 
+import (
+	"time"
+)
+
 type Games struct {
-	Reserve int64
-	Closed  int64
+	Reserve      int64
+	Closed       int64
+	OpenningTime time.Time
 }

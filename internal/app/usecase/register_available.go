@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	httpModel "quizon_bot/internal/app/delivery/http/model"
 	"quizon_bot/internal/generated/postgres/public/model"
+	"quizon_bot/internal/utils"
 )
 
 type RegisterAvailableRepository interface {
@@ -14,21 +16,27 @@ type RegisterAvailableRepository interface {
 }
 
 func (u usecase) RegisterAvailable(ctx context.Context) (httpModel.RegistrationStatus, error) {
-	regs, err := u.registerAvailableRepository.RegistrationsAmount(ctx)
+	restrictionsLimitations, err := u.registerAvailableRepository.SelectRegistrationRestrictions(
+		ctx,
+	)
 	if err != nil {
 		return httpModel.RegistrationStatus(""), err
 	}
 
-	restrictions, err := u.registerAvailableRepository.SelectRegistrationRestrictions(ctx)
+	if !time.Now().In(utils.LocMsk).After(restrictionsLimitations.OpenningTime.In(utils.LocMsk)) {
+		return httpModel.NotOpenedYet, nil
+	}
+
+	regsAMount, err := u.registerAvailableRepository.RegistrationsAmount(ctx)
 	if err != nil {
 		return httpModel.RegistrationStatus(""), err
 	}
 
-	if regs < restrictions.Reserve {
+	if regsAMount < restrictionsLimitations.Reserve {
 		return httpModel.Available, nil
 	}
 
-	if regs < restrictions.Closed {
+	if regsAMount < restrictionsLimitations.Closed {
 		return httpModel.Reserve, nil
 	}
 
